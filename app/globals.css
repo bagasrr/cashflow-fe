@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Gunakan selector yang lebih simpel untuk Tailwind v4 */
 @custom-variant dark (&:is(.dark *));
-
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -37,6 +37,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --chart-income: oklch(80% 0.13088 208.836);
+  --chart-outcome: oklch(80% 0.21824 25.865);
+  --chart-savings: oklch(80% 0.20807 113.303);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --header-height: 3rem;
 }
 
 @theme inline {
@@ -57,6 +63,9 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-chart-income: var(--chart-income);
+  --color-chart-outcome: var(--chart-outcome);
+  --color-chart-savings: var(--chart-savings);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -82,18 +91,12 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
+} */
 
 .dark {
   --background: oklch(0.145 0 0);
@@ -102,7 +105,7 @@ body {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0.00 0);
+  --primary: oklch(0.87 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -127,6 +130,9 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --header-height: 3rem;
 }
 
 @layer base {

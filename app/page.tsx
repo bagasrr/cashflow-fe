@@ -1,7 +1,12 @@
-import React from "react";
+import { ThemeToggle } from "../components/shared/theme-toggle";
 
 const page = () => {
-  return <div>Ini halaman home</div>;
+  return (
+    <div className="">
+      <ThemeToggle />
+      <h1>Ini halaman home</h1>
+    </div>
+  );
 };
 
 export default page;
