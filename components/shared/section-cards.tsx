@@ -1,8 +1,7 @@
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { description } from "./chart-area-interactive";
 import Link from "next/link";
 
 export function SectionCards() {
@@ -62,7 +61,7 @@ export function SectionCards() {
             <CardAction>
               <Badge variant="outline">
                 {item.icon}
-                +12.5%
+                {item.change}
               </Badge>
             </CardAction>
           </CardHeader>
