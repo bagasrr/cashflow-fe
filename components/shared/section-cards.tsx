@@ -1,59 +1,105 @@
+"use client";
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/auth-store";
+import { FormatRupiah } from "@/libs/helper";
+
+interface SummaryData {
+  total_cashflow: number;
+  total_inflow: number;
+  total_outflow: number;
+  total_investment: number;
+}
 
 export function SectionCards() {
-  const data = [
+  const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const { selectedWalletId, dateRange } = useAuthStore();
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      // Tunggu sampai tanggal from ada isinya
+      if (!dateRange?.from) return;
+
+      setIsLoading(true);
+      try {
+        // Jaring pengaman kalau user cuma milih tanggal mulai doang
+        const safeFrom = dateRange.from;
+        const safeTo = dateRange.to || dateRange.from;
+
+        const startDateStr = format(safeFrom, "yyyy-MM-dd");
+        const endDateStr = format(safeTo, "yyyy-MM-dd");
+
+        let url = `/api/dashboard/summary?start_date=${startDateStr}&end_date=${endDateStr}`;
+        if (selectedWalletId && selectedWalletId !== "all") {
+          url += `&wallet_id=${selectedWalletId}`;
+        }
+
+        const res = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const json = await res.json();
+
+        if (json.status && json.data) {
+          setSummary(json.data);
+        } else {
+          setSummary(null); // Reset kalau gagal
+        }
+      } catch (error) {
+        console.error("Gagal get summary:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, [selectedWalletId, dateRange]);
+  console.info("Summary data:", summary);
+  const cardsData = [
     {
       title: "Total Cashflow",
-      money: "5,250.00",
+      money: FormatRupiah(summary?.total_cashflow),
       badgeVariants: "outline",
-      change: "+12.5%",
+      change: "+0%", // Nanti bisa dibikin dinamis kalau ada data bulan lalu
       icon: <IconTrendingUp />,
-      body: {
-        title: "Most Recent Cashflow",
-        link: "#",
-      },
+      body: { title: "Net balance this period", link: "#" },
     },
     {
       title: "Total Income",
-      money: "2,250.00",
+      money: FormatRupiah(summary?.total_inflow),
       badgeVariants: "outline",
-      change: "0.5%",
-      icon: <IconTrendingDown />,
-      body: {
-        title: "Most Recent Income",
-        link: "#",
-      },
+      change: "+0%",
+      icon: <IconTrendingUp className="text-emerald-500" />,
+      body: { title: "Inflow this period", link: "#" },
     },
     {
       title: "Total Outcome",
-      money: "1,250.00",
+      money: FormatRupiah(summary?.total_outflow),
       badgeVariants: "outline",
-      change: "+50%",
-      icon: <IconTrendingDown />,
-      body: {
-        title: "Most Recent Outcome",
-        link: "#",
-      },
+      change: "-0%",
+      icon: <IconTrendingDown className="text-destructive" />,
+      body: { title: "Outflow this period", link: "#" },
     },
     {
-      title: "Savings",
-      money: "10,250.00",
+      title: "Total Investment",
+      money: FormatRupiah(summary?.total_investment),
       badgeVariants: "outline",
-      change: "+50%",
-      icon: <IconTrendingDown />,
-      body: {
-        title: "Most Recent Savings",
-        link: "#",
-      },
+      change: "+0%",
+      icon: <IconTrendingUp className="text-blue-500" />,
+      body: { title: "Investment this period", link: "#" },
     },
   ];
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
-      {data.map((item, index) => (
+      {cardsData.map((item, index) => (
         <Card className="@container/card" key={index}>
           <CardHeader>
             <CardDescription>{item.title}</CardDescription>
