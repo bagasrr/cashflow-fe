@@ -43,9 +43,6 @@ export default function LoginPage() {
         throw new Error(data.message || "Login gagal");
       }
 
-      // ❌ HAPUS setAuth(data.user) KARENA GOLANG GAK NGIRIM DATA USER
-
-      // ✅ Langsung tendang ke dashboard
       router.push("/");
     } catch (err: any) {
       console.error("Login error:", err);

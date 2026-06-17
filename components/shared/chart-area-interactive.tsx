@@ -1,9 +1,7 @@
 "use client";
-
-import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { format, subDays } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, UndoIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 import { cn } from "@/libs/utils";
@@ -17,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useEffect, useState } from "react";
 
 export const description = "An interactive area chart with API and DatePicker";
 
@@ -46,9 +45,9 @@ export function ChartAreaInteractive() {
   const isMobile = useIsMobile();
   const selectedWalletId = useAuthStore((state) => state.selectedWalletId);
 
-  const [data, setData] = React.useState<ChartDataPoint[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [timeRange, setTimeRange] = React.useState("30d"); // Default tampilan 30 hari
+  const [data, setData] = useState<ChartDataPoint[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeRange, setTimeRange] = useState("30d"); // Default tampilan 30 hari
   const date = useAuthStore((state) => state.dateRange);
   const setDate = useAuthStore((state) => state.setDateRange);
 
@@ -67,13 +66,11 @@ export function ChartAreaInteractive() {
     }
   };
 
-  // 3. HANDLER: Saat user milih tanggal manual dari kalender
   const handleManualDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
-    setTimeRange("custom"); // Matikan highlight tombol preset
+    setTimeRange("custom");
   };
 
-  // 4. TEXT RENDERER: Untuk judul deskripsi card
   const timeRangeToLabel = () => {
     if (timeRange === "90d") return "Last 3 Months";
     if (timeRange === "30d") return "Last 30 Days";
@@ -84,31 +81,29 @@ export function ChartAreaInteractive() {
     return "Custom Date Range";
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchChartData = async () => {
-      // Kalau tanggal 'from' belum ada sama sekali, batalkan fetch
+      if (!selectedWalletId || selectedWalletId === "" || selectedWalletId === "all") {
+        console.log("⏳ Fetch Chart ditunda: Menunggu Wallet ID siap...");
+        setData([]); // Pastikan data chart dikosongkan selama menunggu
+        return; // Berhenti di sini, tidak akan menembak API Next.js
+      }
+
+      // Pastikan juga tanggalnya sudah siap
       if (!date?.from) return;
 
       setIsLoading(true);
       try {
-        // 🔥 JARING PENGAMAN: Kalau user baru klik 1 tanggal ('to' undefined),
-        // kita paksa 'to' sama dengan 'from' agar URL tidak error.
         const safeFrom = date.from;
         const safeTo = date.to || date.from;
 
-        // Format ke YYYY-MM-DD
         const startDateStr = format(safeFrom, "yyyy-MM-dd");
         const endDateStr = format(safeTo, "yyyy-MM-dd");
 
-        let url = `/api/dashboard/summary?start_date=${startDateStr}&end_date=${endDateStr}`;
-        console.log("startDateStr:", startDateStr, "endDateStr:", endDateStr);
-        console.log("url:", url);
-        // Pastikan selectedWalletId ada isinya dan bukan "all" sebelum ditambah ke URL
-        if (selectedWalletId && selectedWalletId !== "all") {
-          url += `&wallet_id=${selectedWalletId}`;
-        }
+        // Di titik ini, sudah dijamin 100% selectedWalletId adalah UUID dompet yang valid
+        const url = `/api/wallets/${selectedWalletId}/charts?start_date=${startDateStr}&end_date=${endDateStr}`;
 
-        console.log("🔥 URL CHART FETCH:", url);
+        console.log("🚀 Wallet ID Siap! Menembak API Chart:", url);
 
         const res = await fetch(url);
         const json = await res.json();
@@ -116,20 +111,18 @@ export function ChartAreaInteractive() {
         if (json.status && json.data) {
           setData(json.data);
         } else {
-          // Kalau API gagal/kosong, reset data jadi array kosong biar chart gak error
           setData([]);
         }
       } catch (error) {
         console.error("Gagal get chart data:", error);
+        setData([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Panggil fungsinya
     fetchChartData();
-  }, [date, selectedWalletId]);
-
+  }, [date, selectedWalletId]); // useEffect akan otomatis terpicu ulang BEGITU selectedWalletId berubah nilainya
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -174,7 +167,7 @@ export function ChartAreaInteractive() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-[240px] justify-start text-left font-normal",
+                  "w-60 justify-start text-left font-normal",
                   !date && "text-muted-foreground",
                   timeRange === "custom" && "border-primary", // Highlight jika manual
                 )}
@@ -209,7 +202,6 @@ export function ChartAreaInteractive() {
         )}
 
         <ChartContainer config={chartConfig} className="aspect-auto h-62.5 w-full">
-          {/* PERHATIAN: Pake state `data` dari API, BUKAN filteredData lagi */}
           <AreaChart data={data}>
             <defs>
               <linearGradient id="fillsavings" x1="0" y1="0" x2="0" y2="1">
@@ -248,9 +240,9 @@ export function ChartAreaInteractive() {
                 />
               }
             />
-            <Area dataKey="savings" type="natural" fill="url(#fillsavings)" stroke="var(--color-chart-savings)" />
+            <Area dataKey="investment" type="natural" fill="url(#fillsavings)" stroke="var(--color-chart-savings)" />
             <Area dataKey="income" type="natural" fill="url(#fillincome)" stroke="var(--color-chart-income)" />
-            <Area dataKey="outcome" type="natural" fill="url(#filloutcome)" stroke="var(--color-chart-outcome)" />
+            <Area dataKey="expense" type="natural" fill="url(#filloutcome)" stroke="var(--color-chart-outcome)" />
           </AreaChart>
         </ChartContainer>
       </CardContent>

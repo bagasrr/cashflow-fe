@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { FormatRupiah } from "@/libs/helper";
+import { format } from "date-fns";
 
 interface SummaryData {
   total_cashflow: number;
@@ -40,6 +41,7 @@ export function SectionCards() {
           url += `&wallet_id=${selectedWalletId}`;
         }
 
+        console.log("URL FETCH SUMMARY : ", url);
         const res = await fetch(url, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -103,7 +105,7 @@ export function SectionCards() {
         <Card className="@container/card" key={index}>
           <CardHeader>
             <CardDescription>{item.title}</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">Rp{item.money}</CardTitle>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{item.money}</CardTitle>
             <CardAction>
               <Badge variant="outline">
                 {item.icon}
