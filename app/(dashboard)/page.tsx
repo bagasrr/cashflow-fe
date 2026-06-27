@@ -9,49 +9,92 @@ import { SiteHeader } from "@/components/shared/site-header";
 import { WalletToggle } from "@/components/shared/wallet-toggle";
 import { useAuthStore } from "@/store/auth-store"; // Import store Zustand kamu
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 import data from "./data.json";
 
+interface Trx {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
 export default function Page() {
+  const defaultTimeRage = 30;
   const { user, setAuth, clearAuth, isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const [totalCashflow, setTotalCashflow] = React.useState(0);
-  const [totalIncome, setTotalIncome] = React.useState(0);
-  const [totalExpense, setTotalExpense] = React.useState(0);
-  const [totalInvestment, setTotalInvestment] = React.useState(0);
+  const selectedWalletId = useAuthStore((state) => state.selectedWalletId);
+  const date = useAuthStore((state) => state.dateRange);
 
-  console.log("Dashboard user:", user);
+  const [trxData, setTrxData] = React.useState<Trx[] | null>(null);
+
+  const safeFrom = date?.from || new Date(new Date().setDate(new Date().getDate() - defaultTimeRage));
+  const safeTo = date?.to || new Date();
+
+  const startDateStr = format(safeFrom, "yyyy-MM-dd");
+  const endDateStr = format(safeTo, "yyyy-MM-dd");
+
+  const getMeUrl = "/api/users/me";
+  const getTrxUrl = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=1&limit=10`;
+
   useEffect(() => {
-    const getMe = async () => {
+    const FetchMe = async () => {
       try {
-        const res = await fetch("/api/users/me", {
+        const getMe = await fetch(getMeUrl, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        const getMeJson = await getMe.json();
+        if (!getMe.ok || !getMeJson.success) {
+          throw new Error(getMeJson.error || "Gagal fetch data user");
+        }
+        setAuth(getMeJson.user);
+      } catch (error) {
+        console.error("Error getMe:", error);
+        clearAuth();
+        router.push("/auth/login");
+      }
+    };
+    FetchMe();
+  }, [setAuth, clearAuth, router]);
+
+  useEffect(() => {
+    const fetchTrxData = async () => {
+      // 1. Guard Clause
+      if (!selectedWalletId || selectedWalletId === "" || selectedWalletId === "all") {
+        console.log("⏳ Fetch Trx ditunda: Menunggu Wallet ID siap...");
+        setTrxData([]);
+        return;
+      }
+
+      try {
+        const res = await fetch(getTrxUrl, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
         });
 
         const json = await res.json();
-        // console.log("res json : ", json);
-        // console.log("json.user : ", json.user);
-        // console.log("res.ok : ", res.ok);
-        // console.log("res : ", res);
 
-        // 1. Cek res.ok dan json.success (karena Proxy Next.js ngirimnya key "success")
-        if (!res.ok || !json.success) {
-          throw new Error(json.error || "Gagal fetch data user");
+        if (!res.ok || (!json.status && !json.success)) {
+          throw new Error(json.error || json.message || "Gagal fetch data transaksi");
         }
 
-        // 2. Ambil json.user (karena Proxy Next.js membungkusnya di dalam key "user")
-        setAuth(json.user);
+        console.info("🚀 Data Transaksi berhasil diambil:", json);
+        setTrxData(json.data);
       } catch (error) {
-        console.error("Error getMe:", error);
-        clearAuth();
-        router.push("/auth/login"); // Lempar ke login kalau token expired/gak ada
+        console.error("❌ Error fetchTrxData:", error);
+        setTrxData([]);
       }
     };
 
-    getMe();
-  }, [setAuth, clearAuth, router]);
+    fetchTrxData();
+  }, [selectedWalletId, startDateStr, endDateStr]); // Dependency array di-update
+  console.info("TRX DATA : ", trxData);
   return (
     <div className="flex flex-1 flex-col p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -65,7 +108,7 @@ export default function Page() {
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive />
           </div>
-          <DataTable data={data} />
+          <DataTable data={trxData || []} />
         </div>
       </div>
     </div>

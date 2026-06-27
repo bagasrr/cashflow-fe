@@ -51,6 +51,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ZTransaction } from "@/libs/validation";
+import { FormatIDR } from "@/libs/utils";
+import { IconArrowsSort } from "@tabler/icons-react";
 
 export const schema = z.object({
   id: z.number(),
@@ -76,12 +79,158 @@ function DragHandle({ id }: { id: number }) {
   );
 }
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
-  {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
-  },
+// const columns: ColumnDef<ZTransaction>[] = [
+//   {
+//     id: "drag",
+//     header: () => null,
+//     cell: ({ row }) => <DragHandle id={row.original.id} />,
+//   },
+//   {
+//     id: "select",
+//     header: ({ table }) => (
+//       <div className="flex items-center justify-center">
+//         <Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />
+//       </div>
+//     ),
+//     cell: ({ row }) => (
+//       <div className="flex items-center justify-center">
+//         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />
+//       </div>
+//     ),
+//     enableSorting: false,
+//     enableHiding: false,
+//   },
+//   {
+//     accessorKey: "header",
+//     header: "Header",
+//     cell: ({ row }) => {
+//       return <TableCellViewer item={row.original} />;
+//     },
+//     enableHiding: false,
+//   },
+//   {
+//     accessorKey: "type",
+//     header: "Section Type",
+//     cell: ({ row }) => (
+//       <div className="w-32">
+//         <Badge variant="outline" className="px-1.5 text-muted-foreground">
+//           {row.original.type}
+//         </Badge>
+//       </div>
+//     ),
+//   },
+//   {
+//     accessorKey: "status",
+//     header: "Status",
+//     cell: ({ row }) => (
+//       <Badge variant="outline" className="px-1.5 text-muted-foreground">
+//         {row.original.status === "Done" ? <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" /> : <IconLoader />}
+//         {row.original.status}
+//       </Badge>
+//     ),
+//   },
+//   {
+//     accessorKey: "target",
+//     header: () => <div className="w-full text-right">Target</div>,
+//     cell: ({ row }) => (
+//       <form
+//         onSubmit={(e) => {
+//           e.preventDefault();
+//           toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+//             loading: `Saving ${row.original.header}`,
+//             success: "Done",
+//             error: "Error",
+//           });
+//         }}
+//       >
+//         <Label htmlFor={`${row.original.id}-target`} className="sr-only">
+//           Target
+//         </Label>
+//         <Input
+//           className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
+//           defaultValue={row.original.target}
+//           id={`${row.original.id}-target`}
+//         />
+//       </form>
+//     ),
+//   },
+//   {
+//     accessorKey: "limit",
+//     header: () => <div className="w-full text-right">Limit</div>,
+//     cell: ({ row }) => (
+//       <form
+//         onSubmit={(e) => {
+//           e.preventDefault();
+//           toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+//             loading: `Saving ${row.original.header}`,
+//             success: "Done",
+//             error: "Error",
+//           });
+//         }}
+//       >
+//         <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
+//           Limit
+//         </Label>
+//         <Input
+//           className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
+//           defaultValue={row.original.limit}
+//           id={`${row.original.id}-limit`}
+//         />
+//       </form>
+//     ),
+//   },
+//   {
+//     accessorKey: "reviewer",
+//     header: "Reviewer",
+//     cell: ({ row }) => {
+//       const isAssigned = row.original.reviewer !== "Assign reviewer";
+
+//       if (isAssigned) {
+//         return row.original.reviewer;
+//       }
+
+//       return (
+//         <>
+//           <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
+//             Reviewer
+//           </Label>
+//           <Select>
+//             <SelectTrigger className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate" size="sm" id={`${row.original.id}-reviewer`}>
+//               <SelectValue placeholder="Assign reviewer" />
+//             </SelectTrigger>
+//             <SelectContent align="end">
+//               <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
+//               <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
+//             </SelectContent>
+//           </Select>
+//         </>
+//       );
+//     },
+//   },
+//   {
+//     id: "actions",
+//     cell: () => (
+//       <DropdownMenu>
+//         <DropdownMenuTrigger asChild>
+//           <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted" size="icon">
+//             <IconDotsVertical />
+//             <span className="sr-only">Open menu</span>
+//           </Button>
+//         </DropdownMenuTrigger>
+//         <DropdownMenuContent align="end" className="w-32">
+//           <DropdownMenuItem>Edit</DropdownMenuItem>
+//           <DropdownMenuItem>Make a copy</DropdownMenuItem>
+//           <DropdownMenuItem>Favorite</DropdownMenuItem>
+//           <DropdownMenuSeparator />
+//           <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+//         </DropdownMenuContent>
+//       </DropdownMenu>
+//     ),
+//   },
+// ];
+
+const columns: ColumnDef<ZTransaction>[] = [
+  // 1. Kolom Checkbox
   {
     id: "select",
     header: ({ table }) => (
@@ -97,172 +246,148 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+
+  // 2. Kolom Tanggal Transaksi
   {
-    accessorKey: "header",
-    header: "Header",
-    cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />;
-    },
-    enableHiding: false,
-  },
-  {
-    accessorKey: "type",
-    header: "Section Type",
-    cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="px-1.5 text-muted-foreground">
-          {row.original.type}
-        </Badge>
-      </div>
+    accessorKey: "date",
+    header: ({ column }) => (
+      <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Tanggal
+        <IconArrowsSort className="ml-2 h-4 w-4" />
+      </Button>
     ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.date);
+      const formattedDate = date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+      return <span className="text-muted-foreground">{formattedDate}</span>;
+    },
   },
+
+  // 3. Kolom Deskripsi/Judul (Title)
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "title",
+    header: ({ column }) => (
+      <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Title
+        <IconArrowsSort className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <div className="font-medium text-foreground">{row.original.title}</div>,
+  },
+
+  // 4. Kolom Kategori
+  {
+    id: "category",
+    accessorFn: (row) => row.category?.name,
+    header: ({ column }) => (
+      <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Kategori
+        <IconArrowsSort className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "Done" ? <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" /> : <IconLoader />}
-        {row.original.status}
+      <Badge variant="secondary" className="px-2 font-normal">
+        {row.original.category?.name || "Tanpa Kategori"}
       </Badge>
     ),
   },
-  {
-    accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
 
-      if (isAssigned) {
-        return row.original.reviewer;
-      }
+  // 5. Kolom Tipe (EXPENSE / INCOME / INVESTMENT)
+  {
+    id: "type",
+    accessorFn: (row) => row.category?.type,
+    header: ({ column }) => (
+      <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Tipe
+        <IconArrowsSort className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const type = row.original.category?.type;
+      const isIncome = type === "INCOME";
+      const isExpense = type === "EXPENSE";
 
       return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select>
-            <SelectTrigger className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate" size="sm" id={`${row.original.id}-reviewer`}>
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
-            </SelectContent>
-          </Select>
-        </>
+        <Badge
+          variant="outline"
+          className={isIncome ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500" : isExpense ? "border-destructive/20 bg-destructive/10 text-destructive" : "border-amber-500/20 bg-amber-500/10 text-amber-500"}
+        >
+          {isIncome ? "INCOME" : isExpense ? "EXPENSE" : "INVESTMENT"}
+        </Badge>
       );
     },
   },
+
+  // 6. Kolom Nominal Rupiah
+  {
+    accessorKey: "amount",
+    header: ({ column }) => (
+      <div className="flex w-full justify-end">
+        <Button variant="ghost" className="-mr-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Nominal
+          <IconArrowsSort className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const amount = row.original.amount;
+      const formatted = FormatIDR(amount); // Asumsi lu udah import FormatIDR
+      return <div className="w-full text-right tabular-nums font-semibold">{formatted}</div>;
+    },
+  },
+
+  // 7. Kolom Deskripsi Panjang
+  {
+    accessorKey: "description",
+    header: ({ column }) => (
+      <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Description
+        <IconArrowsSort className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <span className="text-muted-foreground">{row.original.description}</span>,
+  },
+
+  // 8. Kolom Aksi
   {
     id: "actions",
+    enableSorting: false,
     cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted" size="icon">
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted" size="icon">
+              <IconDotsVertical className="size-4" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem>Detail</DropdownMenuItem>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Hapus</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ];
-
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  });
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[] }) {
+export function DataTable({ data: initialData }: { data: ZTransaction[] }) {
   const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
-  const sortableId = React.useId();
-  const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}));
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data]);
+  // Sinkronisasi data kalau dari parent berubah (hasil fetch API)
+  React.useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
 
   const table = useReactTable({
     data,
@@ -272,6 +397,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
       columnVisibility,
       rowSelection,
       columnFilters,
+      globalFilter,
       pagination,
     },
     getRowId: (row) => row.id.toString(),
@@ -281,6 +407,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -289,19 +416,8 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
-  }
-
   return (
-    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
+    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6 px-5">
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
           View
@@ -328,13 +444,20 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
           <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2"> */}
+          <Input
+            placeholder="Cari transaksi by title"
+            // Ambil nilai filter saat ini dari kolom "title"
+            value={globalFilter ?? ""}
+            // Update nilai filter tiap kali user ngetik
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                <IconLayoutColumns />
+                <IconLayoutColumns className="mr-2 h-4 w-4" />
                 <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
-                <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -343,114 +466,93 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 .filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide())
                 .map((column) => {
                   return (
-                    <DropdownMenuCheckboxItem key={column.id} className="capitalize" checked={column.getIsVisible()} onCheckedChange={(value) => column.toggleVisibility(!!value)}>
+                    <DropdownMenuCheckboxItem key={column.id} className="capitalize" checked={column.getIsVisible()} onCheckedChange={(value) => column.toggleVisibility(!!value)} onSelect={(e) => e.preventDefault()}>
                       {column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
         </div>
       </div>
-      <TabsContent value="outline" className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-        <div className="overflow-hidden rounded-lg border">
-          <DndContext collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis]} onDragEnd={handleDragEnd} sensors={sensors} id={sortableId}>
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
+      <div className="overflow-x-auto overflow-y-hidden rounded-lg border">
+        <Table>
+          <TableHeader className="bg-muted/50">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
                 ))}
-              </TableHeader>
-              <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
-                    ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
-        </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue placeholder={table.getState().pagination.pageSize} />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button variant="outline" className="size-8" size="icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button variant="outline" className="size-8" size="icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button variant="outline" className="hidden size-8 lg:flex" size="icon" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Tidak ada transaksi di rentang tanggal ini.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* PAGINATION */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} dari {table.getFilteredRowModel().rows.length} baris terpilih.
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium">Baris per halaman</p>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value));
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+            Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount() || 1}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="hidden size-8 p-0 lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
+              <IconChevronsLeft className="size-4" />
+            </Button>
+            <Button variant="outline" className="size-8 p-0" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+              <IconChevronLeft className="size-4" />
+            </Button>
+            <Button variant="outline" className="size-8 p-0" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+              <IconChevronRight className="size-4" />
+            </Button>
+            <Button variant="outline" className="hidden size-8 p-0 lg:flex" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
+              <IconChevronsRight className="size-4" />
+            </Button>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent value="past-performance" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="focus-documents" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+      </div>
     </Tabs>
   );
 }

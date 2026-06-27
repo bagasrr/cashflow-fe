@@ -1,4 +1,5 @@
 "use client";
+
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { format, subDays } from "date-fns";
 import { Calendar as CalendarIcon, Loader2, UndoIcon } from "lucide-react";
@@ -122,7 +123,7 @@ export function ChartAreaInteractive() {
     };
 
     fetchChartData();
-  }, [date, selectedWalletId]); // useEffect akan otomatis terpicu ulang BEGITU selectedWalletId berubah nilainya
+  }, [date, selectedWalletId]);
   return (
     <Card className="@container/card">
       <CardHeader>
