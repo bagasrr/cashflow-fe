@@ -1,43 +1,67 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { ChartAreaInteractive } from "@/components/shared/chart-area-interactive";
-import { DataTable } from "@/components/shared/data-table";
+import { DataTable } from "@/components/shared/data-table"; // Pastikan path ini benar
 import { SectionCards } from "@/components/shared/section-cards";
 import { SiteHeader } from "@/components/shared/site-header";
 import { WalletToggle } from "@/components/shared/wallet-toggle";
-import { useAuthStore } from "@/store/auth-store"; // Import store Zustand kamu
+import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import type { SortingState, PaginationState } from "@tanstack/react-table"; // 🔥 Import tipe dari TanStack
 
-import data from "./data.json";
+// 🔥 1. CUSTOM HOOK DEBOUNCE (Biar API nggak jebol pas ngetik)
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
 
+// Interface menyesuaikan Zod Transaction lu
 interface Trx {
   id: string;
   date: string;
+  title: string;
   description: string;
   amount: number;
-  category: string;
+  category: { id?: string; name: string; type: string };
 }
 
 export default function Page() {
   const defaultTimeRage = 30;
-  const { user, setAuth, clearAuth, isAuthenticated } = useAuthStore();
+  const { user, setAuth, clearAuth } = useAuthStore();
   const router = useRouter();
   const selectedWalletId = useAuthStore((state) => state.selectedWalletId);
   const date = useAuthStore((state) => state.dateRange);
 
-  const [trxData, setTrxData] = React.useState<Trx[] | null>(null);
+  const [trxData, setTrxData] = useState<Trx[] | null>(null);
+
+  // 🔥 2. STATE UNTUK TABEL SERVER-SIDE
+  const [pageCount, setPageCount] = useState(0);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const debouncedSearch = useDebounce(globalFilter, 500); // Tunggu 500ms setelah user stop ngetik
+
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const safeFrom = date?.from || new Date(new Date().setDate(new Date().getDate() - defaultTimeRage));
   const safeTo = date?.to || new Date();
-
   const startDateStr = format(safeFrom, "yyyy-MM-dd");
   const endDateStr = format(safeTo, "yyyy-MM-dd");
 
   const getMeUrl = "/api/users/me";
-  const getTrxUrl = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=1&limit=10`;
 
   useEffect(() => {
     const FetchMe = async () => {
@@ -64,37 +88,54 @@ export default function Page() {
 
   useEffect(() => {
     const fetchTrxData = async () => {
-      // 1. Guard Clause
       if (!selectedWalletId || selectedWalletId === "" || selectedWalletId === "all") {
-        console.log("⏳ Fetch Trx ditunda: Menunggu Wallet ID siap...");
         setTrxData([]);
         return;
       }
 
       try {
-        const res = await fetch(getTrxUrl, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
+        // Rakit URL dengan parameter sort, search, dan pagination
+        const page = pagination.pageIndex + 1; // Backend lu biasanya ngebaca halaman mulai dari 1
+        const limit = pagination.pageSize;
 
+        let url = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}&limit=${limit}`;
+
+        if (debouncedSearch) {
+          url += `&search=${debouncedSearch}`;
+        }
+
+        if (sorting.length > 0) {
+          // sorting[0] karena kita cuma sort 1 kolom sekaligus
+          url += `&sort_by=${sorting[0].id}&sort_order=${sorting[0].desc ? "desc" : "asc"}`;
+        }
+
+        console.info("🚀 Tembak API Trx:", url);
+
+        const res = await fetch(url, { method: "GET", cache: "no-store" });
         const json = await res.json();
 
         if (!res.ok || (!json.status && !json.success)) {
           throw new Error(json.error || json.message || "Gagal fetch data transaksi");
         }
 
-        console.info("🚀 Data Transaksi berhasil diambil:", json);
-        setTrxData(json.data);
+        setTrxData(json.data || []);
+
+        // Ambil total pages dari meta response API Golang lu
+        if (json.meta && json.meta.total_pages) {
+          setPageCount(json.meta.total_pages);
+        } else {
+          setPageCount(1); // Fallback kalau meta kosong
+        }
       } catch (error) {
         console.error("❌ Error fetchTrxData:", error);
         setTrxData([]);
+        setPageCount(0);
       }
     };
 
     fetchTrxData();
-  }, [selectedWalletId, startDateStr, endDateStr]); // Dependency array di-update
-  console.info("TRX DATA : ", trxData);
+  }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch]); // 🔥 Dependency di-update!
+
   return (
     <div className="flex flex-1 flex-col p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -108,7 +149,11 @@ export default function Page() {
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive />
           </div>
-          <DataTable data={trxData || []} />
+
+          <div className="px-4 lg:px-6">
+            {/* 🔥 4. LEMPAR STATE KE DATATABLE */}
+            <DataTable data={trxData || []} pageCount={pageCount} pagination={pagination} setPagination={setPagination} sorting={sorting} setSorting={setSorting} globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
+          </div>
         </div>
       </div>
     </div>
