@@ -54,7 +54,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 text-foreground">
-      <Card className="w-full max-w-md bg-card text-card-foreground border-border shadow-lg">
+      <Card className="w-full max-w-2xl bg-card text-card-foreground border-border shadow-lg px-5">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center">
             <div className="rounded-full bg-primary/10 p-3 text-primary">
@@ -68,10 +68,12 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {/* ALERT ERROR: Muncul hanya jika ada error dari API */}
-            {error && <div className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20 animate-in fade-in-50 duration-200">{error}</div>}
+            {error && <div className="text-lg font-medium text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20 animate-in fade-in-50 duration-200">{error}</div>}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-2 ">
+              <Label htmlFor="email" className="text-lg">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -80,14 +82,16 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading} // Mencegah input diubah saat loading
-                className="bg-background border-input text-foreground"
+                className="text-xl! bg-background border-input text-foreground h-12 "
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                <Label htmlFor="password" className="text-lg">
+                  Password
+                </Label>
+                <Link href="/forgot-password" className="text-md text-primary hover:underline">
                   Lupa password?
                 </Link>
               </div>
@@ -100,7 +104,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading} // Mencegah input diubah saat loading
-                  className="bg-background border-input text-foreground pr-10"
+                  className="bg-background border-input text-foreground h-12 text-lg! pr-10"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} disabled={isLoading} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -111,7 +115,7 @@ export default function LoginPage() {
 
           <CardFooter className="flex flex-col space-y-4">
             {/* BUTTON DENGAN KONDISI LOADING */}
-            <Button type="submit" disabled={isLoading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button type="submit" disabled={isLoading} className="w-full py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mohon Tunggu...
@@ -123,7 +127,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-lg text-muted-foreground">
               Belum punya akun?{" "}
               <Link href="/register" className="text-primary hover:underline font-medium">
                 Daftar sekarang
