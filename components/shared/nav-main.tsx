@@ -4,6 +4,7 @@ import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { useUiStore } from "@/store/ui-store";
 
 export function NavMain({
   items,
@@ -14,12 +15,17 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
+  const setIsAddTransaction = useUiStore((state) => state.setIsAddTransaction);
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton tooltip="Quick Create" className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground">
+            <SidebarMenuButton
+              tooltip="Quick Create"
+              className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
+              onClick={() => setIsAddTransaction(true)}
+            >
               <IconCirclePlusFilled />
               <span>Quick Create</span>
             </SidebarMenuButton>

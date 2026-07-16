@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import type { SortingState, PaginationState } from "@tanstack/react-table"; // 🔥 Import tipe dari TanStack
+import { PopupInput } from "@/components/features/popup-input";
 
 // 🔥 1. CUSTOM HOOK DEBOUNCE (Biar API nggak jebol pas ngetik)
 function useDebounce<T>(value: T, delay: number): T {
@@ -37,29 +38,27 @@ interface Trx {
 }
 
 export default function Page() {
+  const router = useRouter();
   const defaultTimeRage = 30;
   const { user, setAuth, clearAuth } = useAuthStore();
-  const router = useRouter();
   const selectedWalletId = useAuthStore((state) => state.selectedWalletId);
   const date = useAuthStore((state) => state.dateRange);
 
   const [trxData, setTrxData] = useState<Trx[] | null>(null);
 
+  // fetch api
   const [pageCount, setPageCount] = useState(0);
   const [globalFilter, setGlobalFilter] = useState("");
   const debouncedSearch = useDebounce(globalFilter, 500); // Tunggu 500ms setelah user stop ngetik
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
-
   const safeFrom = date?.from || new Date(new Date().setDate(new Date().getDate() - defaultTimeRage));
   const safeTo = date?.to || new Date();
   const startDateStr = format(safeFrom, "yyyy-MM-dd");
   const endDateStr = format(safeTo, "yyyy-MM-dd");
-
   const getMeUrl = "/api/users/me";
 
   useEffect(() => {
@@ -103,12 +102,8 @@ export default function Page() {
         }
 
         if (sorting.length > 0) {
-          // sorting[0] karena kita cuma sort 1 kolom sekaligus
           getTransactionUrl += `&sort_by=${sorting[0].id}&sort_order=${sorting[0].desc ? "desc" : "asc"}`;
         }
-
-        // console.info("client:", getTransactionUrl);s
-
         const res = await fetch(getTransactionUrl, { method: "GET", cache: "no-store" });
         const json = await res.json();
 
@@ -117,12 +112,10 @@ export default function Page() {
         }
 
         setTrxData(json.data || []);
-
-        // Ambil total pages dari meta response API Golang lu
         if (json.meta && json.meta.total_pages) {
           setPageCount(json.meta.total_pages);
         } else {
-          setPageCount(1); // Fallback kalau meta kosong
+          setPageCount(1);
         }
       } catch (error) {
         console.error("❌ Error fetchTrxData:", error);
@@ -133,11 +126,12 @@ export default function Page() {
 
     fetchTrxData();
   }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch]); // 🔥 Dependency di-update!
+  // end fetch api
 
   return (
     <div className="flex flex-1 flex-col p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Selamat Datang Kembali, {user?.username || "Loading..."} 👋</h1>
+        <h1 className="text-xl font-bold">Welcome, {user?.username || "Loading..."}</h1>
         <WalletToggle />
       </div>
 
@@ -153,6 +147,8 @@ export default function Page() {
           </div>
         </div>
       </div>
+
+      <PopupInput />
     </div>
   );
 }
