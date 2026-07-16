@@ -45,7 +45,6 @@ export default function Page() {
 
   const [trxData, setTrxData] = useState<Trx[] | null>(null);
 
-  // 🔥 2. STATE UNTUK TABEL SERVER-SIDE
   const [pageCount, setPageCount] = useState(0);
   const [globalFilter, setGlobalFilter] = useState("");
   const debouncedSearch = useDebounce(globalFilter, 500); // Tunggu 500ms setelah user stop ngetik
@@ -94,24 +93,23 @@ export default function Page() {
       }
 
       try {
-        // Rakit URL dengan parameter sort, search, dan pagination
-        const page = pagination.pageIndex + 1; // Backend lu biasanya ngebaca halaman mulai dari 1
+        const page = pagination.pageIndex + 1;
         const limit = pagination.pageSize;
 
-        let url = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}&limit=${limit}`;
+        let getTransactionUrl = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}&limit=${limit}`;
 
         if (debouncedSearch) {
-          url += `&search=${debouncedSearch}`;
+          getTransactionUrl += `&search=${debouncedSearch}`;
         }
 
         if (sorting.length > 0) {
           // sorting[0] karena kita cuma sort 1 kolom sekaligus
-          url += `&sort_by=${sorting[0].id}&sort_order=${sorting[0].desc ? "desc" : "asc"}`;
+          getTransactionUrl += `&sort_by=${sorting[0].id}&sort_order=${sorting[0].desc ? "desc" : "asc"}`;
         }
 
-        console.info("🚀 Tembak API Trx:", url);
+        // console.info("client:", getTransactionUrl);s
 
-        const res = await fetch(url, { method: "GET", cache: "no-store" });
+        const res = await fetch(getTransactionUrl, { method: "GET", cache: "no-store" });
         const json = await res.json();
 
         if (!res.ok || (!json.status && !json.success)) {
@@ -151,7 +149,6 @@ export default function Page() {
           </div>
 
           <div className="px-4 lg:px-6">
-            {/* 🔥 4. LEMPAR STATE KE DATATABLE */}
             <DataTable data={trxData || []} pageCount={pageCount} pagination={pagination} setPagination={setPagination} sorting={sorting} setSorting={setSorting} globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
           </div>
         </div>

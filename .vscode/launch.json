@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🔥 Next.js: 1-Click Debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}",
+      // 🔥 Ini yang bikin log masuk ke tab "Debug Console", bukan Terminal!
+      "console": "internalConsole",
+      // 🔥 Ini yang bikin VS Code nembus jebakan proses Next.js & nangkep breakpoint!
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "env": {
+        // Otomatis nyalain mode debug di belakang layar pas lu pencet F5
+        "NODE_OPTIONS": "--inspect"
+      }
+    }
+  ]
+}

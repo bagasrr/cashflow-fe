@@ -10,10 +10,7 @@ import { IconArrowsSort, IconDotsVertical } from "@tabler/icons-react";
 import { ZTransaction } from "@/libs/validation";
 import { FormatIDR } from "@/libs/utils";
 
-// Hapus bagian `schema` lama (z.object({...})) karena udah pakai ZTransaction
-
 export const Columns: ColumnDef<ZTransaction>[] = [
-  // 1. Kolom Checkbox
   {
     id: "select",
     header: ({ table }) => (
@@ -30,7 +27,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     enableHiding: false,
   },
 
-  // 2. Kolom Tanggal Transaksi
   {
     accessorKey: "date",
     header: ({ column }) => (
@@ -46,7 +42,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     },
   },
 
-  // 3. Kolom Deskripsi/Judul (Title)
   {
     accessorKey: "title",
     header: ({ column }) => (
@@ -58,7 +53,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     cell: ({ row }) => <div className="font-medium text-foreground">{row.original.title}</div>,
   },
 
-  // 4. Kolom Kategori
   {
     id: "category",
     accessorFn: (row) => row.category?.name,
@@ -75,7 +69,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     ),
   },
 
-  // 5. Kolom Tipe (EXPENSE / INCOME / INVESTMENT)
   {
     id: "type",
     accessorFn: (row) => row.category?.type,
@@ -101,7 +94,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     },
   },
 
-  // 6. Kolom Nominal Rupiah
   {
     accessorKey: "amount",
     header: ({ column }) => (
@@ -119,7 +111,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     },
   },
 
-  // 7. Kolom Deskripsi Panjang
   {
     accessorKey: "description",
     header: ({ column }) => (
@@ -131,7 +122,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
     cell: ({ row }) => <span className="text-muted-foreground">{row.original.description}</span>,
   },
 
-  // 8. Kolom Aksi
   {
     id: "actions",
     enableSorting: false,

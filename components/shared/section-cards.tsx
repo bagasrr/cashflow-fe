@@ -41,7 +41,7 @@ export function SectionCards() {
           url += `&wallet_id=${selectedWalletId}`;
         }
 
-        console.log("URL FETCH SUMMARY : ", url);
+        // console.log("URL FETCH SUMMARY : ", url);
         const res = await fetch(url, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -64,7 +64,7 @@ export function SectionCards() {
 
     fetchSummary();
   }, [selectedWalletId, dateRange]);
-  console.info("Summary data:", summary);
+  // console.info("Summary data:", summary);
   const cardsData = [
     {
       title: "Total Cashflow",

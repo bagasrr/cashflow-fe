@@ -5,6 +5,8 @@ import { start } from "repl";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
+    // debugger;
+    console.info("server : ", request.url);
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -26,6 +28,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     if (!page || page === "0") {
       return (page = "1");
     }
+
     let limit = searchParams.get("limit");
     if (!limit || limit === "0") {
       return (limit = "10");
@@ -33,10 +36,26 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       return (limit = "20");
     }
 
-    const fullUrl = `http://localhost:8080/api/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}`;
+    let search = searchParams.get("search");
+    let sortBy = searchParams.get("sort_by");
+    let sortOrder = searchParams.get("sort_order");
 
-    console.info("API TRANSACTION HIT");
-    console.info("FULL URL : ", fullUrl);
+    if (!search) {
+      search = "";
+    }
+
+    if (!sortBy) {
+      sortBy = "created_at";
+    }
+    if (!sortOrder) {
+      sortOrder = "desc";
+    }
+
+    const fullUrl = `http://localhost:8080/api/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}&search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    // const fullUrl = new URL(request.url);
+
+    // console.info("API TRANSACTION HIT");
+    // console.info("FULL URL : ", fullUrl);
 
     const res = await fetch(fullUrl, {
       method: "GET",
@@ -47,7 +66,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       cache: "no-store",
     });
     const apiRes = await res.json();
-    console.log("TRX RES", apiRes);
+    // console.log("TRX RES", apiRes);
 
     if (!res.ok) {
       return NextResponse.json({ error: apiRes.message || "Failed to Get Transactions" }, { status: res.status });

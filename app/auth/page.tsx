@@ -10,7 +10,7 @@ import { IconBrandGoogle } from "@tabler/icons-react";
 
 const PageAuth = () => {
   const [isVisiblePassword, setIsVisiblePassword] = useState(false);
-  console.log(isVisiblePassword);
+  // console.log(isVisiblePassword);
   return (
     <div className="flex min-h-screen w-full bg-slate-50">
       {/* Bagian Kiri: Area Form */}

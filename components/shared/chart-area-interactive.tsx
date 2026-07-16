@@ -85,7 +85,7 @@ export function ChartAreaInteractive() {
   useEffect(() => {
     const fetchChartData = async () => {
       if (!selectedWalletId || selectedWalletId === "" || selectedWalletId === "all") {
-        console.log("⏳ Fetch Chart ditunda: Menunggu Wallet ID siap...");
+        // console.log("⏳ Fetch Chart ditunda: Menunggu Wallet ID siap...");
         setData([]); // Pastikan data chart dikosongkan selama menunggu
         return; // Berhenti di sini, tidak akan menembak API Next.js
       }
@@ -104,7 +104,7 @@ export function ChartAreaInteractive() {
         // Di titik ini, sudah dijamin 100% selectedWalletId adalah UUID dompet yang valid
         const url = `/api/wallets/${selectedWalletId}/charts?start_date=${startDateStr}&end_date=${endDateStr}`;
 
-        console.log("🚀 Wallet ID Siap! Menembak API Chart:", url);
+        // console.log("🚀 Wallet ID Siap! Menembak API Chart:", url);
 
         const res = await fetch(url);
         const json = await res.json();

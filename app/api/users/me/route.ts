@@ -26,7 +26,7 @@ export async function GET() {
     // ==========================================
     // CARA DEBUGGING: CEK TERMINAL VSCODE KAMU!
     // ==========================================
-    console.log("data users : ", golangResponse);
+    // console.log("data users : ", golangResponse);
 
     if (!res.ok) {
       return NextResponse.json({ error: golangResponse.message || "Gagal mengambil data dari backend" }, { status: res.status });
