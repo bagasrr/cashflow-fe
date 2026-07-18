@@ -5,8 +5,7 @@ import { start } from "repl";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
-    // debugger;
-    console.info("server : ", request.url);
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -51,11 +50,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       sortOrder = "desc";
     }
 
-    const fullUrl = `http://localhost:8080/api/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}&search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}`;
-    // const fullUrl = new URL(request.url);
-
-    // console.info("API TRANSACTION HIT");
-    // console.info("FULL URL : ", fullUrl);
+    const fullUrl = `${baseUrl}/api/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}&search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}`;
 
     const res = await fetch(fullUrl, {
       method: "GET",

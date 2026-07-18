@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { AppSidebar } from "@/components/shared/app-sidebar";
+import { useEffect, useState } from "react";
 import { ChartAreaInteractive } from "@/components/shared/chart-area-interactive";
 import { DataTable } from "@/components/shared/data-table"; // Pastikan path ini benar
 import { SectionCards } from "@/components/shared/section-cards";
-import { SiteHeader } from "@/components/shared/site-header";
 import { WalletToggle } from "@/components/shared/wallet-toggle";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import type { SortingState, PaginationState } from "@tanstack/react-table"; // 🔥 Import tipe dari TanStack
 import { PopupInput } from "@/components/features/popup-input";
+import { useUiStore } from "@/store/ui-store";
 
 // 🔥 1. CUSTOM HOOK DEBOUNCE (Biar API nggak jebol pas ngetik)
 function useDebounce<T>(value: T, delay: number): T {
@@ -45,6 +44,7 @@ export default function Page() {
   const date = useAuthStore((state) => state.dateRange);
 
   const [trxData, setTrxData] = useState<Trx[] | null>(null);
+  const refreshKey = useUiStore((state) => state.refreshKey); // 🔥 Ambil refreshKey dari Zustand
 
   // fetch api
   const [pageCount, setPageCount] = useState(0);
@@ -125,7 +125,7 @@ export default function Page() {
     };
 
     fetchTrxData();
-  }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch]); // 🔥 Dependency di-update!
+  }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch, refreshKey]); // 🔥 Dependency di-update!
   // end fetch api
 
   return (
