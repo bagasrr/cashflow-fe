@@ -25,19 +25,18 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
 
     let page = searchParams.get("page");
     if (!page || page === "0") {
-      return (page = "1");
+      page = "1";
     }
 
     let limit = searchParams.get("limit");
     if (!limit || limit === "0") {
-      return (limit = "10");
-    } else if (limit >= "100") {
-      return (limit = "20");
+      limit = "10";
+    } else if (Number(limit) >= 50) {
+      limit = "50";
     }
-
-    let search = searchParams.get("search");
-    let sortBy = searchParams.get("sort_by");
-    let sortOrder = searchParams.get("sort_order");
+    let search = searchParams.get("search") || "";
+    let sortBy = searchParams.get("sort_by") || "date";
+    let sortOrder = searchParams.get("sort_order") || "desc";
 
     if (!search) {
       search = "";

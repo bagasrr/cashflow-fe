@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconLayoutColumns } from "@tabler/icons-react";
-import { flexRender, getCoreRowModel, useReactTable, type SortingState, type PaginationState, type VisibilityState } from "@tanstack/react-table";
+import { flexRender, getCoreRowModel, useReactTable, type SortingState, type PaginationState, type VisibilityState, getPaginationRowModel } from "@tanstack/react-table";
 import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,7 @@ export function DataTable({ data, pageCount, pagination, setPagination, sorting,
 
     // Core row models
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
   return (
     <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6 px-5">
@@ -179,7 +180,7 @@ export function DataTable({ data, pageCount, pagination, setPagination, sorting,
                 table.setPageSize(Number(value));
               }}
             >
-              <SelectTrigger className="h-8 w-[70px]">
+              <SelectTrigger className="h-8 w-17.5">
                 <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">

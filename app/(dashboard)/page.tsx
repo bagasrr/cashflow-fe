@@ -95,6 +95,8 @@ export default function Page() {
         const page = pagination.pageIndex + 1;
         const limit = pagination.pageSize;
 
+        console.log("pagination state", pagination);
+
         let getTransactionUrl = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}&limit=${limit}`;
 
         if (debouncedSearch) {
