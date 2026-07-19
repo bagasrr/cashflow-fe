@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Wallet, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react"; // Tambah Loader2 untuk efek loading
 import Link from "next/link";
-import { useAuthStore } from "@/store/auth-store"; // Import store Zustand kamu
 import { useRouter } from "next/navigation"; // Import untuk redirect halaman
 
 export default function LoginPage() {

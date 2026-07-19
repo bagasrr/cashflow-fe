@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { format, subDays } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, UndoIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 import { cn } from "@/libs/utils";
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
+import { useUiStore } from "@/store/ui-store";
 
 export const description = "An interactive area chart with API and DatePicker";
 
@@ -51,6 +52,7 @@ export function ChartAreaInteractive() {
   const [timeRange, setTimeRange] = useState("30d"); // Default tampilan 30 hari
   const date = useAuthStore((state) => state.dateRange);
   const setDate = useAuthStore((state) => state.setDateRange);
+  const refreshKey = useUiStore((state) => state.refreshKey);
 
   const handlePresetChange = (value: string) => {
     if (!value) return; // Cegah unselect
@@ -123,7 +125,7 @@ export function ChartAreaInteractive() {
     };
 
     fetchChartData();
-  }, [date, selectedWalletId]);
+  }, [date, selectedWalletId, refreshKey]);
   return (
     <Card className="@container/card">
       <CardHeader>
