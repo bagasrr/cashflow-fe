@@ -9,6 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { IconArrowsSort, IconDotsVertical } from "@tabler/icons-react";
 import { ZTransaction } from "@/libs/validation";
 import { FormatIDR } from "@/libs/utils";
+import { useUiStore } from "@/store/ui-store";
+import { ActionCell } from "./action-cell";
 
 export const Columns: ColumnDef<ZTransaction>[] = [
   {
@@ -125,23 +127,6 @@ export const Columns: ColumnDef<ZTransaction>[] = [
   {
     id: "actions",
     enableSorting: false,
-    cell: () => (
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted" size="icon">
-              <IconDotsVertical className="size-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem>Detail</DropdownMenuItem>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Hapus</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    ),
+    cell: ({ row }) => <ActionCell row={row} />,
   },
 ];

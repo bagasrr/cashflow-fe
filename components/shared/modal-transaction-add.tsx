@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface Category {
   id: string;
@@ -24,7 +23,6 @@ export const AddTransaction = () => {
   const [rawAmount, setRawAmount] = useState<number | "">("");
   const [displayAmount, setDisplayAmount] = useState<string>("");
   const userInfo = useAuthStore((state) => state.user);
-  console.log("User Info:", userInfo);
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numericValue = e.target.value.replace(/\D/g, "");
 
@@ -90,37 +88,26 @@ export const AddTransaction = () => {
   }, [categoryUrl]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // 🔥 Mencegah browser nge-refresh halaman
-
-    // 1. Tangkap semua data dari inputan form
+    e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    console.log("Form Data:", Object.fromEntries(formData.entries()));
-    // 🔥 1. Ambil raw date dari form
     const rawDate = formData.get("date") as string;
 
-    // 🔥 2. Konversi ke format RFC3339 (ISO 8601) yang diterima Golang
-    // Ini otomatis nambahin detik dan mengubahnya ke zona waktu UTC (Z)
     const formattedDate = rawDate ? new Date(rawDate).toISOString() : "";
-    // 2. Rakit payload sesuai dengan struct Golang lu
     const payload = {
       title: formData.get("title"),
-      amount: rawAmount, // Pakai state angka bulat lu
-      category_id: selectedCategory, // Pakai state kategori
-      date: formattedDate, // Pakai tanggal yang sudah diformat
+      amount: rawAmount,
+      category_id: selectedCategory,
+      date: formattedDate,
       description: formData.get("description"),
       wallet_id: formData.get("wallet"),
     };
 
-    // Validasi basic sebelum dikirim
     if (!payload.category_id) {
       toast.error("Kategori belum dipilih!");
       return;
     }
 
-    console.log("Data yang siap dikirim:", payload);
-
     try {
-      // 3. Tembak ke API Route Next.js lu (yang nanti nembak ke Golang)
       const response = await fetch("/api/transactions", {
         method: "POST",
         headers: {

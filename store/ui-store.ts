@@ -1,17 +1,30 @@
+import { ZTransaction } from "@/libs/validation";
 import { create } from "zustand";
 
 interface UiState {
   isAddTransaction: boolean;
+  isEditTransaction: boolean;
+  isDetailOpen: boolean;
+  selectedTransaction: ZTransaction | null;
   // Fungsi untuk mengubah nilainya
+  openDetailModal: (transaction: ZTransaction) => void;
+  openEditModal: (transaction: ZTransaction) => void;
   setIsAddTransaction: (isOpen: boolean) => void;
+  closeAllModals: () => void;
   refreshKey: number; // State untuk nyimpen key refresh
   triggerRefresh: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
-  isAddTransaction: false, // Default-nya popup ketutup
-  setIsAddTransaction: (isOpen) => set({ isAddTransaction: isOpen }),
+  isAddTransaction: false,
+  isEditTransaction: false,
+  isDetailOpen: false,
+  selectedTransaction: null,
+  refreshKey: 0,
 
-  refreshKey: 0, // Default-nya 0
-  triggerRefresh: () => set((state) => ({ refreshKey: state.refreshKey + 1 })),
+  openDetailModal: (transaction) => set({ isDetailOpen: true, selectedTransaction: transaction }),
+  openEditModal: (transaction) => set({ isEditTransaction: true, selectedTransaction: transaction }),
+  closeAllModals: () => set({ isDetailOpen: false, isEditTransaction: false, selectedTransaction: null }),
+  setIsAddTransaction: (isOpen) => set({ isAddTransaction: isOpen }),
+  triggerRefresh: () => set((state) => ({ refreshKey: state.refreshKey + 1 })), //untuk ngubah value refreshKey, biar refecth otomatis
 }));
