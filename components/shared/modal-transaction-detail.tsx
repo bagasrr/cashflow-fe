@@ -45,7 +45,7 @@ const ModalTransactionDetail = () => {
 
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground font-medium">Wallet</span>
-              <span className="font-semibold text-base">{selectedTransaction.Wallet?.type}</span>
+              <span className="font-semibold text-base">{selectedTransaction.wallet?.name}</span>
             </div>
 
             <div className="flex flex-col gap-1">

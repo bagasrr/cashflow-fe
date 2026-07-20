@@ -23,6 +23,13 @@ export const transactionSchema = z.object({
     })
     .nullable()
     .optional(),
+  wallet: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 // Otomatis bikin tipe TypeScript-nya

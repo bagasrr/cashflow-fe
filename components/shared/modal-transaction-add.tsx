@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { FormatIDR, GetDefaultDate } from "@/libs/utils";
 
 interface Category {
   id: string;
@@ -17,12 +18,43 @@ interface Category {
   type: string;
 }
 
-export const AddTransaction = () => {
-  const setIsAddTransaction = useUiStore((state) => state.setIsAddTransaction);
-
+export const ModalSendTransaction = () => {
+  const setCloseAllModal = useUiStore((state) => state.closeAllModals);
+  const selectedTransaction = useUiStore((state) => state.selectedTransaction);
+  const isEditTransaction = useUiStore((state) => state.isEditTransaction);
+  const isEditMode = isEditTransaction && selectedTransaction !== null;
+  const userInfo = useAuthStore((state) => state.user);
   const [rawAmount, setRawAmount] = useState<number | "">("");
   const [displayAmount, setDisplayAmount] = useState<string>("");
-  const userInfo = useAuthStore((state) => state.user);
+
+  // 🔥 MENGISI FORM OTOMATIS JIKA MODE EDIT
+  useEffect(() => {
+    if (isEditMode && selectedTransaction) {
+      // 1. Set Nominal
+      setRawAmount(selectedTransaction.amount);
+      setDisplayAmount(new Intl.NumberFormat("id-ID").format(selectedTransaction.amount));
+
+      // 2. Set Tipe & Kategori
+      if (selectedTransaction.category) {
+        setSelectedType(selectedTransaction.category.type);
+        setSelectedCategory(selectedTransaction.category.id);
+      }
+
+      // 3. Set Wallet (kalau di data lu ada wallet_id)
+      // setSelectedWallet(selectedTransaction.wallet_id);
+    } else {
+      // Kalau form ditutup atau pindah ke mode Add, reset semua state
+      setRawAmount("");
+      setDisplayAmount("");
+      setSelectedType(null);
+      setSelectedCategory(null);
+      // setSelectedWallet(null);
+    }
+  }, [isEditMode, selectedTransaction]);
+
+  // Helper untuk mengubah tanggal dari backend "2026-07-19T13:59:00+07:00"
+  // Menjadi format input HTML: "2026-07-19T13:59"
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numericValue = e.target.value.replace(/\D/g, "");
 
@@ -35,13 +67,13 @@ export const AddTransaction = () => {
     const numberValue = parseInt(numericValue, 10);
     setRawAmount(numberValue);
 
-    const formatted = new Intl.NumberFormat("id-ID").format(numberValue);
-    setDisplayAmount(formatted);
+    setDisplayAmount(FormatIDR(numberValue));
   };
 
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
+    setSelectedCategory(null);
   };
   const [listCategories, setListCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -72,9 +104,7 @@ export const AddTransaction = () => {
         const response = await fetch(categoryUrl);
         const data = await response.json();
 
-        // Sesuaikan kalau Golang lu pakai { data: [...] }
         setListCategories(data.data || data);
-        setSelectedCategory(null);
       } catch (error) {
         console.error("Error fetching categories:", error);
       } finally {
@@ -108,8 +138,10 @@ export const AddTransaction = () => {
     }
 
     try {
-      const response = await fetch("/api/transactions", {
-        method: "POST",
+      const apiUrl = isEditMode && selectedTransaction ? `/api/transactions/${selectedTransaction.id}` : "/api/transactions";
+      const apiMethod = isEditMode ? "PUT" : "POST";
+      const response = await fetch(apiUrl, {
+        method: apiMethod,
         headers: {
           "Content-Type": "application/json",
         },
@@ -118,7 +150,7 @@ export const AddTransaction = () => {
 
       if (response.ok) {
         toast.success("Transaksi Berhasil Disimpan!");
-        setIsAddTransaction(false);
+        setCloseAllModal();
         trigerRefresh(); // 🔥 Trigger refresh data di dashboard
       } else {
         toast.error("Gagal Menyimpan Transaksi");
@@ -132,7 +164,7 @@ export const AddTransaction = () => {
   return (
     <div className="w-[90%] md:w-[70%] max-h-[90vh] overflow-y-auto rounded-lg bg-card p-6 shadow-lg shadow-secondary/50 animate-in fade-in-50 duration-200 flex flex-col gap-6">
       <div className="flex items-center justify-between border-b pb-4">
-        <h2 className="text-xl font-bold tracking-tight">Tambah Transaksi</h2>
+        <h2 className="text-xl font-bold tracking-tight">{selectedTransaction ? "Edit Transaksi" : "Tambah Transaksi"}</h2>
       </div>
 
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -142,7 +174,7 @@ export const AddTransaction = () => {
               <Label htmlFor="title">
                 Judul Transaksi <span className="text-destructive">*</span>
               </Label>
-              <Input id="title" name="title" placeholder="Cth: Makan Siang Nasi Padang" required />
+              <Input id="title" name="title" placeholder="Cth: Makan Siang Nasi Padang" required defaultValue={selectedTransaction?.title || ""} />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -173,7 +205,14 @@ export const AddTransaction = () => {
                   </Button>
                 ))}
               </div>
-              <Select required name="category" onValueChange={handleCategoryChange} value={selectedCategory || undefined} disabled={!selectedType || isLoadingCategories}>
+              <Select
+                required
+                name="category"
+                onValueChange={handleCategoryChange}
+                value={selectedCategory || undefined}
+                disabled={!selectedType || isLoadingCategories}
+                defaultValue={isEditMode && selectedTransaction?.category.id ? selectedTransaction.category.id : undefined}
+              >
                 <SelectTrigger id="category" className="w-full">
                   <SelectValue placeholder="Pilih Kategori..." className="w-[80%]" />
                   <Loader2 className={`ml-2 h-4 w-4 animate-spin ${isLoadingCategories ? "inline-block" : "hidden"}`} />
@@ -202,14 +241,14 @@ export const AddTransaction = () => {
               <Label htmlFor="date">
                 Tanggal & Waktu <span className="text-destructive">*</span>
               </Label>
-              <Input id="date" name="date" type="datetime-local" required />
+              <Input id="date" name="date" type="datetime-local" defaultValue={GetDefaultDate(selectedTransaction?.date) || ""} required />
             </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="wallet">
                 Dompet (Wallet) <span className="text-destructive">*</span>
               </Label>
-              <Select required name="wallet">
+              <Select required name="wallet" defaultValue={isEditMode && selectedTransaction?.wallet?.id ? selectedTransaction.wallet.id : undefined}>
                 <SelectTrigger id="wallet">
                   <SelectValue placeholder="Pilih Sumber Dana..." />
                 </SelectTrigger>
@@ -234,13 +273,13 @@ export const AddTransaction = () => {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="description">Deskripsi (Opsional)</Label>
-              <Textarea id="description" name="description" placeholder="Tambahkan catatan khusus di sini..." className="resize-none h-20" />
+              <Textarea id="description" name="description" placeholder="Tambahkan catatan khusus di sini..." className="resize-none h-20" defaultValue={selectedTransaction?.description || ""} />
             </div>
           </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t mt-2">
-          <Button variant="outline" type="button" onClick={() => setIsAddTransaction(false)}>
+          <Button variant="outline" type="button" onClick={() => setCloseAllModal()}>
             Batal
           </Button>
           <Button type="submit">Simpan Transaksi</Button>

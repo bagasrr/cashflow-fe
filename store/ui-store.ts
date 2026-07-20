@@ -24,7 +24,7 @@ export const useUiStore = create<UiState>((set) => ({
 
   openDetailModal: (transaction) => set({ isDetailOpen: true, selectedTransaction: transaction }),
   openEditModal: (transaction) => set({ isEditTransaction: true, selectedTransaction: transaction }),
-  closeAllModals: () => set({ isDetailOpen: false, isEditTransaction: false, selectedTransaction: null }),
+  closeAllModals: () => set({ isAddTransaction: false, isDetailOpen: false, isEditTransaction: false, selectedTransaction: null }),
   setIsAddTransaction: (isOpen) => set({ isAddTransaction: isOpen }),
   triggerRefresh: () => set((state) => ({ refreshKey: state.refreshKey + 1 })), //untuk ngubah value refreshKey, biar refecth otomatis
 }));
