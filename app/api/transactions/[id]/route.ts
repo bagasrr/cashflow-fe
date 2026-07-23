@@ -7,9 +7,12 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 
     // 1. Parse dari Frontend
     const body = await request.json();
+    console.log("body : ", body);
+    // return;
 
     const params = await props.params;
     const id = params.id;
+    console.log("params ID: ", id);
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;

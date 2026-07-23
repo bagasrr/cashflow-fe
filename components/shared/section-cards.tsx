@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { FormatRupiah } from "@/libs/helper";
 import { format } from "date-fns";
+import { useUiStore } from "@/store/ui-store";
 
 interface SummaryData {
   total_cashflow: number;
@@ -19,6 +20,7 @@ interface SummaryData {
 export function SectionCards() {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshKey = useUiStore((state) => state.refreshKey);
 
   const { selectedWalletId, dateRange } = useAuthStore();
 
@@ -63,7 +65,7 @@ export function SectionCards() {
     };
 
     fetchSummary();
-  }, [selectedWalletId, dateRange]);
+  }, [selectedWalletId, dateRange, refreshKey]);
   // console.info("Summary data:", summary);
   const cardsData = [
     {

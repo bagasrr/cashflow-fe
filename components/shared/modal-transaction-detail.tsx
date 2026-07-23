@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 const ModalTransactionDetail = () => {
   const selectedTransaction = useUiStore((state) => state.selectedTransaction);
   const closeAllModals = useUiStore((state) => state.closeAllModals);
-
+  console.log("selectedTransaction: ", selectedTransaction);
   // Jika tidak ada data yang dipilih, jangan render apa-apa
   if (!selectedTransaction) return null;
 

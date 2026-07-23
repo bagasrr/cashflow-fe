@@ -22,6 +22,8 @@ export const ModalSendTransaction = () => {
   const setCloseAllModal = useUiStore((state) => state.closeAllModals);
   const selectedTransaction = useUiStore((state) => state.selectedTransaction);
   const isEditTransaction = useUiStore((state) => state.isEditTransaction);
+  const isLoading = useUiStore((state) => state.isLoading);
+  const setIsLoading = useUiStore((state) => state.setIsLoading);
   const isEditMode = isEditTransaction && selectedTransaction !== null;
   const userInfo = useAuthStore((state) => state.user);
   const [rawAmount, setRawAmount] = useState<number | "">("");
@@ -81,7 +83,7 @@ export const ModalSendTransaction = () => {
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
   };
-  const trigerRefresh = useUiStore((state) => state.triggerRefresh);
+  const trigerRefresh = useUiStore((state) => state.triggerRefresh); // 🔥 Trigger refresh data di dashboard
   const categoryType = [
     { value: "INCOME", label: "Income" },
     { value: "EXPENSE", label: "Expense" },
@@ -136,8 +138,10 @@ export const ModalSendTransaction = () => {
       toast.error("Kategori belum dipilih!");
       return;
     }
-
+    console.log("Payload:", payload);
+    // return;
     try {
+      setIsLoading(true);
       const apiUrl = isEditMode && selectedTransaction ? `/api/transactions/${selectedTransaction.id}` : "/api/transactions";
       const apiMethod = isEditMode ? "PUT" : "POST";
       const response = await fetch(apiUrl, {
@@ -158,6 +162,8 @@ export const ModalSendTransaction = () => {
     } catch (error) {
       toast.error("Terjadi kesalahan saat menyimpan transaksi. Silakan coba lagi.");
       console.log("ERR : ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -282,7 +288,16 @@ export const ModalSendTransaction = () => {
           <Button variant="outline" type="button" onClick={() => setCloseAllModal()}>
             Batal
           </Button>
-          <Button type="submit">Simpan Transaksi</Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              "Simpan Transaksi"
+            )}
+          </Button>
         </div>
       </form>
     </div>

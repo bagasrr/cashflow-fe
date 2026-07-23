@@ -13,7 +13,6 @@ export const ActionCell = ({ row }: { row: Row<ZTransaction> }) => {
   // Karena ini adalah Komponen React asli (huruf kapital), linter nggak akan ngomel lagi!
   const openDetailModal = useUiStore((state) => state.openDetailModal);
   const openEditModal = useUiStore((state) => state.openEditModal);
-  console.log("Open detail modal function:", openDetailModal);
 
   return (
     <div className="flex justify-end w-5">
