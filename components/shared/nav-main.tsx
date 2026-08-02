@@ -15,7 +15,7 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
-  const setIsAddTransaction = useUiStore((state) => state.setIsAddTransaction);
+  const openModal = useUiStore((state) => state.openModal);
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -24,7 +24,7 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-              onClick={() => setIsAddTransaction(true)}
+              onClick={() => openModal("add")}
             >
               <IconCirclePlusFilled />
               <span>Quick Create</span>

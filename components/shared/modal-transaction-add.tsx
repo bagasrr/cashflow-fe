@@ -21,10 +21,10 @@ interface Category {
 export const ModalSendTransaction = () => {
   const setCloseAllModal = useUiStore((state) => state.closeAllModals);
   const selectedTransaction = useUiStore((state) => state.selectedTransaction);
-  const isEditTransaction = useUiStore((state) => state.isEditTransaction);
+  const modalType = useUiStore((state) => state.modalType);
   const isLoading = useUiStore((state) => state.isLoading);
   const setIsLoading = useUiStore((state) => state.setIsLoading);
-  const isEditMode = isEditTransaction && selectedTransaction !== null;
+  const isEditMode = modalType === "edit" && selectedTransaction !== null;
   const userInfo = useAuthStore((state) => state.user);
   const [rawAmount, setRawAmount] = useState<number | "">("");
   const [displayAmount, setDisplayAmount] = useState<string>("");
@@ -53,6 +53,8 @@ export const ModalSendTransaction = () => {
       // setSelectedWallet(null);
     }
   }, [isEditMode, selectedTransaction]);
+
+  console.log("Selected Transaction:", selectedTransaction);
 
   // Helper untuk mengubah tanggal dari backend "2026-07-19T13:59:00+07:00"
   // Menjadi format input HTML: "2026-07-19T13:59"
@@ -105,8 +107,12 @@ export const ModalSendTransaction = () => {
       try {
         const response = await fetch(categoryUrl);
         const data = await response.json();
-
-        setListCategories(data.data || data);
+        console.log("Fetched Categories:", data);
+        if (data.data === null) {
+          setListCategories([]);
+        } else {
+          setListCategories(data.data);
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
       } finally {
@@ -118,7 +124,7 @@ export const ModalSendTransaction = () => {
     // Panggil fungsinya
     fetchCategories();
   }, [categoryUrl]);
-
+  console.log("List Categories: length", listCategories.length);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -167,6 +173,8 @@ export const ModalSendTransaction = () => {
     }
   };
 
+  console.log(listCategories.length);
+
   return (
     <div className="w-[90%] md:w-[70%] max-h-[90vh] overflow-y-auto rounded-lg bg-card p-6 shadow-lg shadow-secondary/50 animate-in fade-in-50 duration-200 flex flex-col gap-6">
       <div className="flex items-center justify-between border-b pb-4">
@@ -211,34 +219,37 @@ export const ModalSendTransaction = () => {
                   </Button>
                 ))}
               </div>
-              <Select
-                required
-                name="category"
-                onValueChange={handleCategoryChange}
-                value={selectedCategory || undefined}
-                disabled={!selectedType || isLoadingCategories}
-                defaultValue={isEditMode && selectedTransaction?.category.id ? selectedTransaction.category.id : undefined}
-              >
-                <SelectTrigger id="category" className="w-full">
-                  <SelectValue placeholder="Pilih Kategori..." className="w-[80%]" />
-                  <Loader2 className={`ml-2 h-4 w-4 animate-spin ${isLoadingCategories ? "inline-block" : "hidden"}`} />
-                  {/* <Loader2 className={`ml-2 h-4 w-4 animate-spin }`} /> */}
-                </SelectTrigger>
+              {/* Deklarasikan variabel ini biar logikanya gampang dibaca */}
+              {(() => {
+                const isCategoryEmpty = selectedType && listCategories.length === 0 && !isLoadingCategories;
 
-                <SelectContent>
-                  {listCategories.length > 0 ? (
-                    listCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="null" disabled>
-                      Pilih tipe kategori terlebih dahulu
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                return (
+                  <Select
+                    required
+                    name="category"
+                    onValueChange={handleCategoryChange}
+                    value={selectedCategory || undefined}
+                    // 🔥 1. Kunci dropdown kalau tipe belum dipilih, lagi loading, ATAU data kosong
+                    disabled={!selectedType || isLoadingCategories || isCategoryEmpty ? true : undefined}
+                    defaultValue={isEditMode && selectedTransaction?.category.id ? selectedTransaction.category.id : undefined}
+                  >
+                    <SelectTrigger id="category" className="w-full">
+                      {/* 🔥 2. Ubah placeholder dinamis sesuai kondisinya */}
+                      <SelectValue placeholder={!selectedType ? "Pilih tipe kategori dulu..." : isCategoryEmpty ? "Tidak ada kategori untuk tipe ini" : "Pilih Kategori..."} className="w-[80%]" />
+                      <Loader2 className={`ml-2 h-4 w-4 animate-spin ${isLoadingCategories ? "inline-block" : "hidden"}`} />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {/* 🔥 3. Content cukup mapping data saja, gak perlu mikirin empty state lagi */}
+                      {listCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
           </div>
 

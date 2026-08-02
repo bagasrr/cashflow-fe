@@ -6,19 +6,15 @@ import { Button } from "../ui/button";
 import { Edit, Eye, Trash } from "lucide-react";
 import { IconDotsVertical } from "@tabler/icons-react";
 
-// 🔥 1. BIKIN KOMPONEN TERPISAH DI SINI
 export const ActionCell = ({ row }: { row: Row<ZTransaction> }) => {
   const transaction = row.original;
-
-  // Karena ini adalah Komponen React asli (huruf kapital), linter nggak akan ngomel lagi!
-  const openDetailModal = useUiStore((state) => state.openDetailModal);
-  const openEditModal = useUiStore((state) => state.openEditModal);
+  const openModal = useUiStore((state) => state.openModal);
 
   return (
     <div className="flex justify-end w-5">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted" size="icon">
+          <Button variant="ghost" className="flex size-8 text-muted-foreground data-[state=open]:bg-muted cursor-pointer" size="icon">
             <IconDotsVertical className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
@@ -26,17 +22,17 @@ export const ActionCell = ({ row }: { row: Row<ZTransaction> }) => {
         <DropdownMenuContent align="center" className="w-22">
           <DropdownMenuLabel>Action</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => {
-              openDetailModal(transaction);
-            }}
-          >
+
+          {/* 🔥 Panggilannya jauh lebih bersih */}
+          <DropdownMenuItem onClick={() => openModal("detail", transaction)} className="cursor-pointer">
             <Eye className="mr-2 h-4 w-4" /> Lihat Detail
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => openEditModal(transaction)}>
-            <Edit className="mr-2 h-4 w-4" /> Edit Transaksi
+
+          <DropdownMenuItem onClick={() => openModal("edit", transaction)} className="cursor-pointer">
+            <Edit className="mr-2 h-4 w-4 " /> Edit Transaksi
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive">
+
+          <DropdownMenuItem className="text-destructive  cursor-pointer" onClick={() => openModal("delete", transaction)}>
             <Trash className="mr-2 h-4 w-4" /> Hapus
           </DropdownMenuItem>
         </DropdownMenuContent>

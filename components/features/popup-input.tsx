@@ -3,31 +3,28 @@ import { ModalSendTransaction } from "../shared/modal-transaction-add";
 import { Button } from "../ui/button";
 import { IconXFilled } from "@tabler/icons-react";
 import ModalTransactionDetail from "../shared/modal-transaction-detail";
+import ModalConfirmDelete from "../shared/modal-confirm-delete";
 
 export const PopupInput = () => {
-  const isAddTransaction = useUiStore((state) => state.isAddTransaction);
-  const isEditTransaction = useUiStore((state) => state.isEditTransaction);
+  const isModalOpen = useUiStore((state) => state.isModalOpen);
+  const modalType = useUiStore((state) => state.modalType);
   const setCloseAllModal = useUiStore((state) => state.closeAllModals);
-  const isDetailOpen = useUiStore((state) => state.isDetailOpen);
 
-  if (!isAddTransaction && !isDetailOpen && !isEditTransaction) {
-    return null; // Jangan render apa pun jika kedua modal tidak terbuka
+  // 🔥 Logika super bersih: Kalau modal gak dibuka, jangan render apa-apa
+  if (!isModalOpen || modalType === "none") {
+    return null;
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Button
-        variant="ghost"
-        className="absolute top-10 right-10"
-        onClick={() => {
-          setCloseAllModal();
-        }}
-      >
+      <Button variant="ghost" className="absolute top-10 right-10" onClick={setCloseAllModal}>
         <IconXFilled className="h-6 w-6" />
       </Button>
-      {!isAddTransaction ? null : <ModalSendTransaction />}
-      {!isEditTransaction ? null : <ModalSendTransaction />}
-      {!isDetailOpen ? null : <ModalTransactionDetail />}
+
+      {/* 🔥 Render form berdasarkan tipenya */}
+      {(modalType === "add" || modalType === "edit") && <ModalSendTransaction />}
+      {modalType === "detail" && <ModalTransactionDetail />}
+      {modalType === "delete" && <ModalConfirmDelete />}
     </div>
   );
 };
