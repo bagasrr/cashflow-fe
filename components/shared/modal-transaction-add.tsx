@@ -290,7 +290,7 @@ export const ModalSendTransaction = () => {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="description">Deskripsi (Opsional)</Label>
-              <Textarea id="description" name="description" placeholder="Tambahkan catatan khusus di sini..." className="resize-none h-20" defaultValue={selectedTransaction?.description || ""} />
+              <Textarea id="description" name="description" placeholder="Tambahkan catatan khusus di sini..." className="resize-none h-20" defaultValue={selectedTransaction?.description || ""} maxLength={255} />
             </div>
           </div>
         </div>

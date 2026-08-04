@@ -60,7 +60,7 @@ export default function Page() {
   const startDateStr = format(safeFrom, "yyyy-MM-dd");
   const endDateStr = format(safeTo, "yyyy-MM-dd");
   const getMeUrl = "/api/users/me";
-
+  const openModal = useUiStore((state) => state.openModal);
   useEffect(() => {
     const FetchMe = async () => {
       try {
@@ -134,7 +134,9 @@ export default function Page() {
     <div className="flex flex-1 flex-col p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">Welcome, {user?.username || "Loading..."}</h1>
-        <WalletToggle />
+        <span onClick={() => openModal("wallet")} className="cursor-pointer">
+          <WalletToggle />
+        </span>
       </div>
 
       <div className="@container/main flex flex-1 flex-col gap-2 ">

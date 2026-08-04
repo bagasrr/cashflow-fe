@@ -14,20 +14,25 @@ import { ActionCell } from "./action-cell";
 
 export const Columns: ColumnDef<ZTransaction>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center ">
-        <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />
-      </div>
-    ),
+    id: "actions",
     enableSorting: false,
-    enableHiding: false,
+    cell: ({ row }) => <ActionCell row={row} />,
   },
+  // {
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <div className="flex items-center justify-center">
+  //       <Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />
+  //     </div>
+  //   ),
+  //   cell: ({ row }) => (
+  //     <div className="flex items-center justify-center ">
+  //       <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />
+  //     </div>
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
 
   {
     accessorKey: "date",
@@ -121,12 +126,19 @@ export const Columns: ColumnDef<ZTransaction>[] = [
         <IconArrowsSort className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => <span className="text-muted-foreground">{row.original.description}</span>,
-  },
+    cell: ({ row }) => {
+      const description: string = row.getValue("description");
 
-  {
-    id: "actions",
-    enableSorting: false,
-    cell: ({ row }) => <ActionCell row={row} />,
+      return (
+        // 🔥 max-w-[200px] membatasi lebarnya.
+        // 🔥 truncate memotong teks berlebih jadi "..."
+        <div
+          className="max-w-[200px] md:max-w-[300px] line-clamp-2 text-ellipsis overflow-hidden whitespace-pre-wrap break-words"
+          title={description} // Ini bikin teks aslinya muncul pas di-hover mouse
+        >
+          {description || "-"}
+        </div>
+      );
+    },
   },
 ];

@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { IconXFilled } from "@tabler/icons-react";
 import ModalTransactionDetail from "../shared/modal-transaction-detail";
 import ModalConfirmDelete from "../shared/modal-confirm-delete";
+import ModalWallet from "../shared/modal-wallet";
 
 export const PopupInput = () => {
   const isModalOpen = useUiStore((state) => state.isModalOpen);
@@ -25,6 +26,7 @@ export const PopupInput = () => {
       {(modalType === "add" || modalType === "edit") && <ModalSendTransaction />}
       {modalType === "detail" && <ModalTransactionDetail />}
       {modalType === "delete" && <ModalConfirmDelete />}
+      {modalType === "wallet" && <ModalWallet />}
     </div>
   );
 };

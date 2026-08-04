@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 const ModalTransactionDetail = () => {
   const selectedTransaction = useUiStore((state) => state.selectedTransaction);
   const closeAllModals = useUiStore((state) => state.closeAllModals);
-  console.log("selectedTransaction: ", selectedTransaction);
+
   // Jika tidak ada data yang dipilih, jangan render apa-apa
   if (!selectedTransaction) return null;
 
@@ -15,7 +15,7 @@ const ModalTransactionDetail = () => {
   return (
     // 1. OVERLAY BACKGROUND GELAP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      {/* // 2. KOTAK MODAL UTAMA÷ */}
+      {/* 2. KOTAK MODAL UTAMA */}
       <div id="modal-detail-transaction" className="w-full max-w-lg bg-card text-card-foreground rounded-xl shadow-xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200 overflow-hidden border">
         {/* HEADER */}
         <div className="flex items-center justify-between border-b px-6 py-4">
@@ -28,46 +28,52 @@ const ModalTransactionDetail = () => {
         {/* BODY / CONTENT */}
         <div className="flex flex-col gap-6 p-6 overflow-y-auto max-h-[80vh]">
           {/* HIGHLIGHT NOMINAL */}
-          <h2 className="text-sm text-center text-muted-foreground">Total Nominal</h2>
-          <div className="flex flex-col items-center justify-center p-5 bg-muted/50 rounded-lg border border-border relative">
-            <h3 className={`text-3xl font-bold ${isIncome ? "text-emerald-500" : "text-rose-500"}`}>Rp {selectedTransaction.amount.toLocaleString("id-ID")}</h3>
-            <Badge variant={isIncome ? "default" : "destructive"} className="mt-2 text-primary bg-opacity-20 absolute top-1 right-1">
-              {selectedTransaction.category?.type}
-            </Badge>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-sm text-center text-muted-foreground">Total Nominal</h2>
+            <div className="flex flex-col items-center justify-center p-5 bg-muted/50 rounded-lg border border-border relative">
+              <h3 className={`text-3xl font-bold ${isIncome ? "text-emerald-500" : "text-rose-500"}`}>Rp {selectedTransaction.amount.toLocaleString("id-ID")}</h3>
+              <Badge variant={isIncome ? "default" : "destructive"} className="mt-2 text-primary bg-opacity-20 absolute top-2 right-2">
+                {selectedTransaction.category?.type}
+              </Badge>
+            </div>
           </div>
 
-          {/* LIST RINCIAN DATA */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
+          {/* 🔥 LIST RINCIAN DATA (GRID DIPERBAIKI) 🔥 */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5 text-sm w-full">
+            {/* BARIS 1 - KIRI */}
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground font-medium">Judul Transaksi</span>
               <span className="font-semibold text-base">{selectedTransaction.title}</span>
             </div>
 
-            <div className="flex flex-col gap-1">
+            {/* BARIS 1 - KANAN */}
+            <div className="flex flex-col gap-1 items-end text-right">
               <span className="text-muted-foreground font-medium">Wallet</span>
-              <span className="font-semibold text-base">{selectedTransaction.wallet?.name}</span>
+              <span className="font-semibold text-base">{selectedTransaction.wallet?.name || "-"}</span>
             </div>
 
+            {/* BARIS 2 - KIRI */}
             <div className="flex flex-col gap-1">
               <span className="text-muted-foreground font-medium">Kategori</span>
-              <span className="font-semibold text-base">{selectedTransaction.category?.name}</span>
+              <span className="font-semibold text-base">{selectedTransaction.category?.name || "-"}</span>
             </div>
 
-            <div className="flex flex-col gap-1 sm:col-span-2">
+            {/* BARIS 2 - KANAN (Hapus col-span-2 biar rata sejajar kategori) */}
+            <div className="flex flex-col gap-1 items-end text-right">
               <span className="text-muted-foreground font-medium">Waktu Transaksi</span>
               <span className="font-semibold text-base">
                 {new Date(selectedTransaction.date).toLocaleString("id-ID", {
-                  dateStyle: "full",
+                  dateStyle: "medium",
                   timeStyle: "short",
                 })}
               </span>
             </div>
 
-            {/* DESKRIPSI (Hanya muncul jika diisi) */}
+            {/* DESKRIPSI (Bawah, Full Width) */}
             {selectedTransaction.description && (
-              <div className="flex flex-col gap-1 sm:col-span-2">
+              <div className="flex flex-col gap-1 col-span-2 pt-2">
                 <span className="text-muted-foreground font-medium">Deskripsi</span>
-                <div className="bg-muted p-3 rounded-md text-sm border leading-relaxed whitespace-pre-wrap">{selectedTransaction.description}</div>
+                <div className="bg-muted p-3 rounded-md text-sm border leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">{selectedTransaction.description}</div>
               </div>
             )}
           </div>
