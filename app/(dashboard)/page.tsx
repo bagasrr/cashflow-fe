@@ -12,7 +12,6 @@ import type { SortingState, PaginationState } from "@tanstack/react-table"; // �
 import { PopupInput } from "@/components/features/popup-input";
 import { useUiStore } from "@/store/ui-store";
 
-// 🔥 1. CUSTOM HOOK DEBOUNCE (Biar API nggak jebol pas ngetik)
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
@@ -44,7 +43,7 @@ export default function Page() {
   const date = useAuthStore((state) => state.dateRange);
 
   const [trxData, setTrxData] = useState<Trx[] | null>(null);
-  const refreshKey = useUiStore((state) => state.refreshKey); // 🔥 Ambil refreshKey dari Zustand
+  const refreshKey = useUiStore((state) => state.refreshKey);
 
   // fetch api
   const [pageCount, setPageCount] = useState(0);
@@ -95,7 +94,7 @@ export default function Page() {
         const page = pagination.pageIndex + 1;
         const limit = pagination.pageSize;
 
-        console.log("pagination state", pagination);
+        // console.log("pagination state", pagination);
 
         let getTransactionUrl = `/api/wallets/${selectedWalletId}/transactions?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}&limit=${limit}`;
 
@@ -127,8 +126,7 @@ export default function Page() {
     };
 
     fetchTrxData();
-  }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch, refreshKey]); // 🔥 Dependency di-update!
-  // end fetch api
+  }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch, refreshKey]);
 
   return (
     <div className="flex flex-1 flex-col p-4">

@@ -6,9 +6,9 @@ import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
-import { FormatRupiah } from "@/libs/helper";
 import { format } from "date-fns";
 import { useUiStore } from "@/store/ui-store";
+import { FormatIDR } from "@/libs/utils";
 
 interface SummaryData {
   total_cashflow: number;
@@ -70,28 +70,28 @@ export function SectionCards() {
   const cardsData = [
     {
       title: "Total Cashflow",
-      money: FormatRupiah(summary?.total_cashflow),
+      money: FormatIDR(summary?.total_cashflow),
       // Contoh angka dummy: cashflow turun 5% (merah)
       badge: renderChangeBadge(-5.0, false),
       body: { title: "Net balance this period", link: "#" },
     },
     {
       title: "Total Income",
-      money: FormatRupiah(summary?.total_inflow),
+      money: FormatIDR(summary?.total_inflow),
       // Contoh angka dummy: income naik 12% (hijau)
       badge: renderChangeBadge(12.0, false),
       body: { title: "Inflow this period", link: "#" },
     },
     {
       title: "Total Outcome",
-      money: FormatRupiah(summary?.total_outflow),
+      money: FormatIDR(summary?.total_outflow),
       // Pengeluaran turun 8% (Kategori Expense = true). Akan jadi Hijau karena ngirit!
       badge: renderChangeBadge(-8.0, true),
       body: { title: "Outflow this period", link: "#" },
     },
     {
       title: "Total Investment",
-      money: FormatRupiah(summary?.total_investment),
+      money: FormatIDR(summary?.total_investment),
       // Investasi naik 15.5% (Kategori Expense = false, karena investasi itu nambah aset).
       badge: renderChangeBadge(15.5, false),
       body: { title: "Investment this period", link: "#" },
@@ -100,7 +100,7 @@ export function SectionCards() {
   // const cardsData = [
   //   {
   //     title: "Total Cashflow",
-  //     money: FormatRupiah(summary?.total_cashflow),
+  //     money: FormatIDR(summary?.total_cashflow),
   //     // badgeVariants: "outline",
   //     badge: renderChangeBadge(15.5, true),
   //     change: "+0%", // Nanti bisa dibikin dinamis kalau ada data bulan lalu
@@ -109,7 +109,7 @@ export function SectionCards() {
   //   },
   //   {
   //     title: "Total Income",
-  //     money: FormatRupiah(summary?.total_inflow),
+  //     money: FormatIDR(summary?.total_inflow),
   //     badge: renderChangeBadge(15.5, true),
   //     // badgeVariants: "outline",
   //     change: "+0%",
@@ -118,7 +118,7 @@ export function SectionCards() {
   //   },
   //   {
   //     title: "Total Outcome",
-  //     money: FormatRupiah(summary?.total_outflow),
+  //     money: FormatIDR(summary?.total_outflow),
   //     badge: renderChangeBadge(15.5, true),
   //     // badgeVariants: "outline",
   //     change: "-0%",
@@ -127,7 +127,7 @@ export function SectionCards() {
   //   },
   //   {
   //     title: "Total Investment",
-  //     money: FormatRupiah(summary?.total_investment),
+  //     money: FormatIDR(summary?.total_investment),
   //     badge: renderChangeBadge(15.5, true),
   //     // badgeVariants: "outline",
   //     change: "+0%",

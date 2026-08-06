@@ -1,7 +1,5 @@
-import { error } from "console";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { start } from "repl";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {

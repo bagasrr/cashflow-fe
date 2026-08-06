@@ -1,36 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, ChevronRight, Wallet as WalletIcon, ReceiptText } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, ChevronRight, Wallet as WalletIcon, ReceiptText, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
+import { FormatIDR, GetDefaultDate } from "@/libs/utils";
 
-// --- MOCK DATA (Hapus ini nanti kalau udah pakai data API asli) ---
-const MOCK_WALLETS = [
-  { id: "w1", name: "BCA Utama", balance: 15000000 },
-  { id: "w2", name: "Gopay", balance: 250000 },
-  { id: "w3", name: "Uang Tunai", balance: 500000 },
-  { id: "w4", name: "Mandiri Tabungan", balance: 8000000 },
-  { id: "w5", name: "OVO", balance: 120000 },
-];
+// const MOCK_WALLETS = [
+//   { id: "w1", name: "BCA Utama", balance: 15000000 },
+//   { id: "w2", name: "Gopay", balance: 250000 },
+//   { id: "w3", name: "Uang Tunai", balance: 500000 },
+//   { id: "w4", name: "Mandiri Tabungan", balance: 8000000 },
+//   { id: "w5", name: "OVO", balance: 120000 },
+// ];
 
-const MOCK_TRANSACTIONS = [
-  { id: "t1", wallet_id: "w1", title: "Gaji Bulan Agustus", amount: 10000000, type: "INCOME" },
-  { id: "t2", wallet_id: "w1", title: "Bayar Listrik", amount: 500000, type: "EXPENSE" },
-  { id: "t3", wallet_id: "w2", title: "GoFood Ayam Bakar", amount: 45000, type: "EXPENSE" },
-  { id: "t4", wallet_id: "w3", title: "Beli Bensin", amount: 20000, type: "EXPENSE" },
-];
-// -----------------------------------------------------------------
+// const MOCK_TRANSACTIONS = [
+//   { id: "t1", wallet_id: "w1", title: "Gaji Bulan Agustus", amount: 10000000, type: "INCOME" },
+//   { id: "t2", wallet_id: "w1", title: "Bayar Listrik", amount: 500000, type: "EXPENSE" },
+//   { id: "t3", wallet_id: "w1", title: "Gaji Bulan Agustus", amount: 10000000, type: "INCOME" },
+//   { id: "t4", wallet_id: "w1", title: "Bayar Listrik", amount: 500000, type: "EXPENSE" },
+//   { id: "t5", wallet_id: "w1", title: "Gaji Bulan Agustus", amount: 10000000, type: "INCOME" },
+//   { id: "t6", wallet_id: "w1", title: "Bayar Listrik", amount: 500000, type: "EXPENSE" },
+//   { id: "t7", wallet_id: "w1", title: "Gaji Bulan Agustus", amount: 10000000, type: "INCOME" },
+//   { id: "t8", wallet_id: "w1", title: "Bayar Listrik", amount: 500000, type: "EXPENSE" },
+//   { id: "t1", wallet_id: "w2", title: "GoFood Ayam Bakar", amount: 45000, type: "EXPENSE" },
+//   { id: "t10", wallet_id: "w3", title: "Beli Bensin", amount: 20000, type: "EXPENSE" },
+// ];
 
 const ModalWallet = () => {
   // State untuk melacak wallet mana yang sedang diklik
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
+  const [allWallets, setAllWallets] = useState<any[]>([]); // State untuk menyimpan semua wallet
   const onClose = useUiStore((state) => state.closeAllModals);
+  console.log("All get wallet : ", allWallets);
+  const page = 1;
+  const limit = 10;
 
+  useEffect(() => {
+    const ApiGetWallets = async () => {
+      try {
+        const response = await fetch(`/api/wallets/me?page=${page}&limit=${limit}`, { method: "GET" });
+        const resData = await response.json();
+
+        // 🔥 1. UBAH BAGIAN INI (tarik dari resData.data)
+        setAllWallets(resData.data || []);
+      } catch (error) {
+        console.error("Error fetching wallets:", error);
+      }
+    };
+    ApiGetWallets();
+  }, []);
   // Filter transaksi berdasarkan wallet yang dipilih
-  const filteredTransactions = MOCK_TRANSACTIONS.filter((trx) => trx.wallet_id === selectedWalletId);
-  const selectedWallet = MOCK_WALLETS.find((w) => w.id === selectedWalletId);
-
+  const selectedWallet = allWallets.find((w) => w.id === selectedWalletId);
+  const filteredTransactions = selectedWallet?.transactions || [];
   return (
     // OVERLAY
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -50,11 +72,15 @@ const ModalWallet = () => {
               BAGIAN KIRI: 30% (List Wallet)
           ========================================================= */}
           <div className="w-[30%] border-r bg-muted/10 flex flex-col h-full">
-            <div className="p-4 border-b bg-muted/20 font-semibold text-sm text-muted-foreground uppercase tracking-wider">Daftar Dompet</div>
-
+            <div className="p-4 border-b bg-muted/20 font-semibold text-sm text-muted-foreground uppercase tracking-wider flex justify-between items-center">
+              <span>Daftar Dompet</span>
+              <span>
+                <Filter />
+              </span>
+            </div>
             {/* Area Scrollable Kiri */}
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-              {MOCK_WALLETS.map((wallet) => {
+              {allWallets.map((wallet) => {
                 const isSelected = selectedWalletId === wallet.id;
 
                 return (
@@ -89,7 +115,11 @@ const ModalWallet = () => {
             {/* Header Kanan Dinamis */}
             <div className="p-4 border-b flex justify-between items-center bg-card">
               <span className="font-semibold">{selectedWallet ? `Transaksi: ${selectedWallet.name}` : "Detail Transaksi"}</span>
-              {selectedWallet && <span className="text-sm text-muted-foreground">Saldo: Rp {selectedWallet.balance.toLocaleString("id-ID")}</span>}
+              {selectedWallet && (
+                <span className="text-sm text-muted-foreground">
+                  Saldo: <span className="text-primary text-md font-bold">{FormatIDR(selectedWallet.balance)}</span>
+                </span>
+              )}
             </div>
 
             {/* Area Scrollable Kanan */}
@@ -111,15 +141,14 @@ const ModalWallet = () => {
               ) : (
                 // LIST TRANSAKSI
                 <div className="flex flex-col gap-3">
+                  <p>Preview Transaksi</p>
                   {filteredTransactions.map((trx) => (
                     <div key={trx.id} className="flex items-center justify-between p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex flex-col">
                         <span className="font-semibold text-base">{trx.title}</span>
-                        <span className="text-xs text-muted-foreground">ID: {trx.id}</span>
+                        <span className="text-xs text-muted-foreground">Transaction Date: {GetDefaultDate(trx.date)}</span>
                       </div>
-                      <div className={`font-bold text-lg ${trx.type === "INCOME" ? "text-emerald-500" : "text-rose-500"}`}>
-                        {trx.type === "INCOME" ? "+" : "-"} Rp {trx.amount.toLocaleString("id-ID")}
-                      </div>
+                      <div className={`font-bold text-lg ${trx.category.type === "INCOME" ? "text-emerald-500" : trx.category.type === "INVESTMENT" ? "text-amber-500" : "text-rose-500"}`}>{FormatIDR(trx.amount)}</div>
                     </div>
                   ))}
                 </div>
