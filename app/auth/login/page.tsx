@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Wallet, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react"; // Tambah Loader2 untuk efek loading
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Import untuk redirect halaman
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,9 +43,11 @@ export default function LoginPage() {
       }
 
       router.push("/");
+      toast.success("Login berhasil! Selamat datang kembali.");
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message);
+      toast.error("Login gagal. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }

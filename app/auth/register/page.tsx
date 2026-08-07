@@ -56,6 +56,7 @@ export default function RegisterPage() {
     } catch (err: string | any) {
       console.error("Register error:", err);
       setError(err.message);
+      toast.error("Registrasi gagal. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }

@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import type { SortingState, PaginationState } from "@tanstack/react-table"; // 🔥 Import tipe dari TanStack
 import { PopupInput } from "@/components/features/popup-input";
 import { useUiStore } from "@/store/ui-store";
+import { toast } from "sonner";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -118,7 +119,9 @@ export default function Page() {
         } else {
           setPageCount(1);
         }
+        toast.success("Berhasil mengambil data transaksi");
       } catch (error) {
+        toast.error("Gagal mengambil data transaksi");
         console.error("❌ Error fetchTrxData:", error);
         setTrxData([]);
         setPageCount(0);

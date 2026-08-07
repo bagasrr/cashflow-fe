@@ -5,6 +5,7 @@ import { X, ChevronRight, Wallet as WalletIcon, ReceiptText, Filter } from "luci
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
 import { FormatIDR, GetDefaultDate } from "@/libs/utils";
+import { toast } from "sonner";
 
 // const MOCK_WALLETS = [
 //   { id: "w1", name: "BCA Utama", balance: 15000000 },
@@ -44,8 +45,10 @@ const ModalWallet = () => {
 
         // 🔥 1. UBAH BAGIAN INI (tarik dari resData.data)
         setAllWallets(resData.data || []);
+        toast.success("Berhasil mengambil data dompet");
       } catch (error) {
         console.error("Error fetching wallets:", error);
+        toast.error("Gagal mengambil data dompet");
       }
     };
     ApiGetWallets();

@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { useUiStore } from "@/store/ui-store";
+import { toast } from "sonner";
 
 interface ModalConfirmDeleteProps {
   param: string;
@@ -32,8 +33,10 @@ const ModalConfirmDelete = () => {
         const data = await response.json();
         triggerRefresh();
         console.log(data);
+        toast.success("Transaksi berhasil dihapus");
       } catch (error) {
         console.error("Error deleting transaction:", error);
+        toast.error("Gagal menghapus transaksi");
       }
     };
     req();
