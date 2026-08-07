@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
   try {
-    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
 
     // 1. Parse dari Frontend
     const body = await request.json();
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
-    const res = await fetch(`${baseUrl}/api/transactions`, {
+    const res = await fetch(`${baseUrl}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

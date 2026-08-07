@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
-    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     }
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "";
-    const fullUrl = `${baseUrl}/api/categories/me?type=${type}`;
+    const fullUrl = `${baseUrl}/categories/me?type=${type}`;
 
     const res = await fetch(fullUrl, {
       method: "GET",

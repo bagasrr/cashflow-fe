@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("end_date");
     const walletId = searchParams.get("wallet_id");
 
-    const targetUrl = new URL("http://localhost:8080/api/dashboard/summary");
+    const targetUrl = new URL(`${baseUrl}/dashboard/summary`);
     if (startDate) targetUrl.searchParams.append("start_date", startDate);
     if (endDate) targetUrl.searchParams.append("end_date", endDate);
 

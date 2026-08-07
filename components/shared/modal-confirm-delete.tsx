@@ -13,6 +13,7 @@ const ModalConfirmDelete = () => {
   const onClose = useUiStore((state) => state.closeAllModals);
   const isLoading = useUiStore((state) => state.isLoading);
   const setIsLoading = useUiStore((state) => state.setIsLoading);
+  const triggerRefresh = useUiStore((state) => state.triggerRefresh);
 
   if (!selectedTransaction) {
     return null; // Jangan render apa pun jika tidak ada transaksi yang dipilih
@@ -29,6 +30,7 @@ const ModalConfirmDelete = () => {
           method: "DELETE",
         });
         const data = await response.json();
+        triggerRefresh();
         console.log(data);
       } catch (error) {
         console.error("Error deleting transaction:", error);

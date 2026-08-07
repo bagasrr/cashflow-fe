@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
-    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -47,7 +47,7 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       sortOrder = "desc";
     }
 
-    const fullUrl = `${baseUrl}/api/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}&search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}`;
+    const fullUrl = `${baseUrl}/wallets/${walletId}/transactions?start_date=${startDate}&end_date=${endDate}&page=${page}&limit=${limit}&search=${search}&sort_by=${sortBy}&sort_order=${sortOrder}`;
 
     const res = await fetch(fullUrl, {
       method: "GET",

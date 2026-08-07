@@ -4,8 +4,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api"; // Ganti dengan URL server Golang Anda
     // Tembak Golang (Server to Server, bebas CORS!)
-    const res = await fetch("http://localhost:8080/api/auth/login", {
+    const res = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

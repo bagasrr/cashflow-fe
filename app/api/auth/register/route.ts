@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const golangApiUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const golangApiUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
     const body = await request.json();
 
     // Tembak Golang (Server to Server, bebas CORS!)
-    const res = await fetch(`${golangApiUrl}/api/auth/register`, {
+    const res = await fetch(`${golangApiUrl}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

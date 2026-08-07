@@ -37,7 +37,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
-    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
 
     const params = await props.params;
     const id = params.id;
@@ -46,7 +46,7 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
-    const res = await fetch(`${baseUrl}/api/transactions/${id}`, {
+    const res = await fetch(`${baseUrl}/transactions/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

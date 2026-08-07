@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080";
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const res = await fetch(`${baseUrl}/api/wallets/me?page=${page}&limit=${limit}`, {
+    const res = await fetch(`${baseUrl}/wallets/me?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

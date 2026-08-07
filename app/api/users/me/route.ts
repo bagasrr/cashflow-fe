@@ -11,7 +11,8 @@ export async function GET() {
     }
 
     // Pastikan URL Golang ini benar (apakah pakai /v1/ atau tidak?)
-    const res = await fetch("http://localhost:8080/api/users/me", {
+    const baseUrl = process.env.GOLANG_API_URL || "http://localhost:8080/api";
+    const res = await fetch(`${baseUrl}/users/me`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

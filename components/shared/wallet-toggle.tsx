@@ -29,9 +29,12 @@ export function WalletToggle() {
           <SelectValue placeholder="Pilih Dompet" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="default" disabled>
+            Pilih Dompet
+          </SelectItem>
           {/* Tangani kasus jika user belum membuat dompet sama sekali */}
           {!user.wallets || user.wallets.length === 0 ? (
-            <SelectItem value="empty" disabled>
+            <SelectItem className="text-muted-foreground" value={"null"}>
               Belum ada dompet
             </SelectItem>
           ) : (

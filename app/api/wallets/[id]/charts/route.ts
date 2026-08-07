@@ -27,7 +27,7 @@ export async function GET(
     const startDate = searchParams.get("start_date");
     const endDate = searchParams.get("end_date");
 
-    const golangUrl = `http://localhost:8080/api/wallets/${walletId}/charts?start_date=${startDate}&end_date=${endDate}`;
+    const golangUrl = `${process.env.GOLANG_API_URL || "http://localhost:8080/api"}/wallets/${walletId}/charts?start_date=${startDate}&end_date=${endDate}`;
 
     // Cek log di terminal VSCode kamu!
     // console.log("=> PROXY NEMBAK GOLANG KE:", golangUrl);
