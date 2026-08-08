@@ -117,8 +117,6 @@ export const ModalSendTransaction = () => {
         console.error("Error fetching categories:", error);
         toast.error("Gagal mengambil data kategori");
       } finally {
-        toast.success("Berhasil mengambil data kategori");
-
         // Matikan loading, entah itu sukses atau error
         setIsLoadingCategories(false);
       }

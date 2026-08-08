@@ -132,7 +132,7 @@ export default function Page() {
   }, [selectedWalletId, startDateStr, endDateStr, pagination, sorting, debouncedSearch, refreshKey]);
 
   return (
-    <div className="flex flex-1 flex-col p-4">
+    <div className="flex flex-1 flex-col">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">Welcome, {user?.username || "Loading..."}</h1>
         <span onClick={() => openModal("wallet")} className="cursor-pointer">

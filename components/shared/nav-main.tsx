@@ -1,10 +1,11 @@
 "use client";
 
 import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
-
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { useUiStore } from "@/store/ui-store";
+import Link from "next/link";
 
 export function NavMain({
   items,
@@ -15,6 +16,8 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
+  const router = useRouter();
+
   const openModal = useUiStore((state) => state.openModal);
   return (
     <SidebarGroup>
@@ -38,10 +41,12 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              <Link href={item.url} className="flex items-center gap-2 ">
+                <SidebarMenuButton tooltip={item.title} className="cursor-pointer">
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

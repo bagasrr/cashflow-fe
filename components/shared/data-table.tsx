@@ -42,6 +42,7 @@ export function DataTable({ data, pageCount, pagination, setPagination, sorting,
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 
+  console.log("sortby : ", sorting[0].id);
   const table = useReactTable({
     data,
     columns: Columns,
@@ -75,7 +76,7 @@ export function DataTable({ data, pageCount, pagination, setPagination, sorting,
     getPaginationRowModel: getPaginationRowModel(),
   });
   return (
-    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6 px-5">
+    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
           View

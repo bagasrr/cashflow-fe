@@ -61,7 +61,7 @@ export const Columns: ColumnDef<ZTransaction>[] = [
   },
 
   {
-    id: "category",
+    id: "categories.name",
     accessorFn: (row) => row.category?.name,
     header: ({ column }) => (
       <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -77,7 +77,7 @@ export const Columns: ColumnDef<ZTransaction>[] = [
   },
 
   {
-    id: "type",
+    id: "categories.type",
     accessorFn: (row) => row.category?.type,
     header: ({ column }) => (
       <Button variant="ghost" className="-ml-4 h-8 hover:bg-muted" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
