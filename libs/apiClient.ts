@@ -41,7 +41,7 @@ apiClient.interceptors.response.use(
       // Hapus token basi
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
-        window.location.href = "/login"; // Tendang paksa
+        window.location.href = "/auth/login"; // Tendang paksa
       }
     }
     return Promise.reject(error);

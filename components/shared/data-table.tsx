@@ -28,7 +28,7 @@ export const schema = z.object({
 });
 
 interface DataTableProps {
-  data: ZTransaction[];
+  data: ZTransaction[] | [];
   pageCount: number;
   pagination: PaginationState;
   setPagination: Dispatch<SetStateAction<PaginationState>>;
@@ -42,7 +42,6 @@ export function DataTable({ data, pageCount, pagination, setPagination, sorting,
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 
-  console.log("sortby : ", sorting[0].id);
   const table = useReactTable({
     data,
     columns: Columns,

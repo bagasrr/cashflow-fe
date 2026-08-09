@@ -52,7 +52,7 @@ export default function RegisterPage() {
       }
 
       toast.success("Akun berhasil dibuat! Silakan login.");
-      router.push("/login"); // Setelah sukses daftar, lempar ke halaman login
+      router.push("/auth/login"); // Setelah sukses daftar, lempar ke halaman login
     } catch (err: string | any) {
       console.error("Register error:", err);
       setError(err.message);
