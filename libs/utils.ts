@@ -26,3 +26,14 @@ export const GetDefaultDate = (isoString: string | undefined) => {
   const mm = String(date.getMinutes()).padStart(2, "0");
   return `${yyyy}-${MM}-${dd},${hh}:${mm}`;
 };
+
+// Fungsi untuk mengekstrak pesan error secara aman
+export function GetErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return String((error as any).message);
+  }
+  return "Terjadi kesalahan yang tidak diketahui";
+}

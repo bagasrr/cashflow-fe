@@ -1,71 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ChartAreaInteractive } from "@/components/shared/chart-area-interactive";
 import { DataTable } from "@/components/shared/data-table"; // Pastikan path ini benar
 import { SectionCards } from "@/components/shared/section-cards";
 import { WalletToggle } from "@/components/shared/wallet-toggle";
-import { useAuthStore } from "@/store/auth-store";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import type { SortingState, PaginationState } from "@tanstack/react-table"; // 🔥 Import tipe dari TanStack
 import { PopupInput } from "@/components/features/popup-input";
 import { useUiStore } from "@/store/ui-store";
-import { toast } from "sonner";
 import { useTransactions } from "@/hooks/use-transaction";
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
-}
-
-// Interface menyesuaikan Zod Transaction lu
-interface Trx {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  amount: number;
-  category: { id?: string; name: string; type: string };
-}
+import { useAuthUser } from "@/hooks/use-auth";
 
 export default function Page() {
-  const router = useRouter();
-  const { user, setAuth, clearAuth } = useAuthStore();
+  // const router = useRouter();
+  // const { user, setAuth, clearAuth } = useAuthStore();
+  const { user } = useAuthUser();
 
-  const getMeUrl = "/api/users/me";
+  // const getMeUrl = "/api/users/me";
   const { trxData, pageCount, pagination, setPagination, sorting, setSorting, globalFilter, setGlobalFilter } = useTransactions();
   const openModal = useUiStore((state) => state.openModal);
-  useEffect(() => {
-    const FetchMe = async () => {
-      try {
-        const getMe = await fetch(getMeUrl, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
+  // useEffect(() => {
+  //   const FetchMe = async () => {
+  //     try {
+  //       const getMe = await fetch(getMeUrl, {
+  //         method: "GET",
+  //         headers: { "Content-Type": "application/json" },
+  //         cache: "no-store",
+  //       });
 
-        const getMeJson = await getMe.json();
-        if (!getMe.ok || !getMeJson.success) {
-          throw new Error(getMeJson.error || "Gagal fetch data user");
-        }
-        setAuth(getMeJson.user);
-      } catch (error) {
-        console.error("Error getMe:", error);
-        clearAuth();
-        router.push("/auth/login");
-      }
-    };
-    FetchMe();
-  }, [setAuth, clearAuth, router]);
+  //       const getMeJson = await getMe.json();
+  //       if (!getMe.ok || !getMeJson.success) {
+  //         throw new Error(getMeJson.error || "Gagal fetch data user");
+  //       }
+  //       setAuth(getMeJson.user);
+  //     } catch (error) {
+  //       console.error("Error getMe:", error);
+  //       clearAuth();
+  //       router.push("/auth/login");
+  //     }
+  //   };
+  //   FetchMe();
+  // }, [setAuth, clearAuth, router]);
 
   return (
     <div className="flex flex-1 flex-col">

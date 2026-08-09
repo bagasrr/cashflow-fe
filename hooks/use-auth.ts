@@ -29,7 +29,7 @@ export function useAuthUser() {
       } catch (error) {
         console.error("Error getMe:", error);
         clearAuth();
-        router.push("/login"); // Lempar ke halaman login kalau token mati/error
+        router.push("/auth/login"); // Lempar ke halaman login kalau token mati/error
       } finally {
         setIsUserLoading(false);
       }

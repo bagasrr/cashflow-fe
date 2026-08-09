@@ -4,6 +4,7 @@ export interface IUser {
   id: string;
   email: string;
   username: string;
-  user_role: "user" | "admin";
+  user_role: string;
   wallets?: IWallet[];
+  avatar?: string;
 }

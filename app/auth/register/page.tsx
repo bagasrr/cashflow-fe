@@ -9,6 +9,8 @@ import { Wallet, Eye, EyeOff, ArrowRight, Loader2, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner"; // Tambahan opsional kalau mau pakai toast
+import Error from "next/error";
+import { GetErrorMessage } from "@/libs/utils";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -53,9 +55,10 @@ export default function RegisterPage() {
 
       toast.success("Akun berhasil dibuat! Silakan login.");
       router.push("/auth/login"); // Setelah sukses daftar, lempar ke halaman login
-    } catch (err: string | any) {
+    } catch (err: unknown) {
       console.error("Register error:", err);
-      setError(err.message);
+      const msg = GetErrorMessage(err);
+      setError(msg);
       toast.error("Registrasi gagal. Silakan coba lagi.");
     } finally {
       setIsLoading(false);

@@ -1,29 +1,17 @@
+import { IUser } from "@/types/user";
 import { subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { create } from "zustand";
 
 // 1. Tambahkan interface Wallet sesuai JSON Golang kamu
-export interface Wallet {
-  id: string;
-  name: string;
-  balance: number;
-}
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  user_role: string;
-  wallets: Wallet[]; // 2. Masukkan array wallets ke User
-}
 
 interface AuthState {
-  user: User | null;
+  user: IUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   selectedWalletId: string | "all"; // 3. State untuk nyimpen ID dompet yang dipilih
   dateRange: DateRange | undefined;
-  setAuth: (user: User) => void;
+  setAuth: (user: IUser) => void;
   clearAuth: () => void;
   setIsLoading: (loading: boolean) => void;
   setSelectedWalletId: (id: string | "all") => void; // 4. Fungsi untuk ngubah dompet
