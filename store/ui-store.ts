@@ -2,7 +2,7 @@ import { ZTransaction } from "@/libs/validation";
 import { create } from "zustand";
 
 // Cukup pakai string union ini, gak perlu dibungkus object interface lagi
-type ModalType = "add" | "edit" | "detail" | "delete" | "wallet" | "none";
+type ModalType = "add" | "edit" | "detail" | "delete" | "wallet" | "import_data" | "none";
 
 interface UiState {
   isLoading: boolean;

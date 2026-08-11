@@ -1,124 +1,274 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import Papa from "papaparse";
+import { Upload, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, UploadCloud, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";
 import { useUiStore } from "@/store/ui-store";
 
-export const ModalImportCsv = () => {
-  const [file, setFile] = useState<File | null>(null);
+// Target kontrak DTO Golang
+const TARGET_FIELDS = [
+  { id: "title", label: "Judul Transaksi", required: true },
+  { id: "amount", label: "Nominal (Amount)", required: true },
+  { id: "date", label: "Tanggal (Date)", required: true },
+  { id: "category_name", label: "Nama Kategori", required: true },
+  { id: "category_type", label: "Tipe (Income/Expense/Investment)", required: false }, // Jika tidak ada, pakai fallback
+];
+
+export function ModalImportData() {
+  const { user, selectedWalletId, setSelectedWalletId } = useAuthStore();
+  const closeAllModals = useUiStore((state) => state.closeAllModals);
+
+  // State 1: Data Mentah di RAM (Aturan 1)
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvRawData, setCsvRawData] = useState<any[]>([]);
+
+  // State 2: UI Mapping & Fallback (Aturan 2 & 3)
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [fallbackType, setFallbackType] = useState<"INCOME" | "EXPENSE" | "INVESTMENT">("EXPENSE");
+
+  // State 3: Validasi & Eksekusi (Aturan 4 & 5)
+  const [errors, setErrors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const closeAllModals = useUiStore((state) => state.closeAllModals);
-  const triggerRefresh = useUiStore((state) => state.triggerRefresh);
+  // --- ATURAN 1: Intersep & Parsing di RAM ---
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  // Fungsi untuk menangkap file yang dipilih user
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-
-      // Validasi ringan di frontend (opsional)
-      if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {
-        toast.error("Format file harus CSV!");
-        setFile(null);
-        return;
-      }
-
-      setFile(selectedFile);
-    }
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true, // Otomatis hapus baris benar-benar kosong
+      complete: (results) => {
+        if (results.meta.fields) {
+          setCsvHeaders(results.meta.fields);
+          setCsvRawData(results.data);
+          setErrors([]);
+        } else {
+          toast.error("Gagal membaca header CSV");
+        }
+      },
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!file) {
-      toast.error("Pilih file CSV terlebih dahulu!");
+  // --- ATURAN 4 & 5: Validasi, Transformasi, Eksekusi ---
+  const handleSubmit = async () => {
+    setErrors([]); // Reset error lokal
+
+    // Validasi Dasar: Dompet wajib dipilih (Aturan 2)
+    if (!selectedWalletId || selectedWalletId === "all") {
+      return setErrors(["Pilih dompet tujuan terlebih dahulu."]);
+    }
+
+    // Validasi Dasar: Cek field wajib map
+    const missing = TARGET_FIELDS.filter((f) => f.required && !mapping[f.id]);
+    if (missing.length > 0) {
+      return setErrors([`Harap petakan kolom wajib: ${missing.map((m) => m.label).join(", ")}`]);
+    }
+
+    const localErrors: string[] = [];
+    const cleanPayload = [];
+
+    // --- ATURAN 3: Transformasi Kontrak Mutlak ---
+    for (let i = 0; i < csvRawData.length; i++) {
+      const row = csvRawData[i];
+      const rowNum = i + 1; // Untuk penanda error ke user
+
+      // Ambil nilai dari kolom yang di-map
+      const rawTitle = row[mapping["title"]];
+      const rawAmount = row[mapping["amount"]];
+      const rawDate = row[mapping["date"]];
+      const rawCatName = row[mapping["category_name"]];
+      const rawCatType = mapping["category_type"] ? row[mapping["category_type"]] : fallbackType;
+
+      // Cek Baris Kosong (Pengamanan Ganda)
+      if (!rawTitle && !rawAmount && !rawDate) continue;
+
+      const cleanAmountStr = String(rawAmount)
+        .replace(/\./g, "") // 1. Hapus semua titik (pemisah ribuan Indonesia)
+        .replace(/,/g, ".") // 2. Ubah koma menjadi titik (jadikan desimal standar JS)
+        .replace(/[^0-9.-]+/g, ""); // 3. Hapus sisa karakter aneh (Rp, spasi, huruf)
+
+      const finalAmount = Number(cleanAmountStr);
+
+      // Validasi Dini (The Gatekeeper)
+      if (isNaN(finalAmount) || finalAmount <= 0) {
+        localErrors.push(`Baris ${rowNum}: Nominal "${rawAmount}" tidak valid.`);
+      }
+
+      // Format ISO 8601 Date
+      const finalDate = new Date(rawDate);
+      if (isNaN(finalDate.getTime())) {
+        localErrors.push(`Baris ${rowNum}: Format tanggal "${rawDate}" tidak valid.`);
+      }
+
+      const finalType = String(rawCatType).toUpperCase();
+      if (finalType !== "INCOME" && finalType !== "EXPENSE" && finalType !== "INVESTMENT") {
+        localErrors.push(`Baris ${rowNum}: Tipe "${finalType}" tidak dikenali (Gunakan INCOME/EXPENSE/INVESTMENT).`);
+      }
+
+      cleanPayload.push({
+        wallet_id: selectedWalletId, // Hasil Aturan 2
+        title: String(rawTitle).trim(),
+        amount: finalAmount,
+        date: finalDate.toISOString(),
+        category_name: String(rawCatName).trim(),
+        category_type: finalType,
+      });
+    }
+
+    // Hentikan proses jika ada 1 saja baris yang cacat
+    if (localErrors.length > 0) {
+      setErrors(localErrors);
       return;
     }
 
+    // --- ATURAN 5: Eksekusi & Penguncian UI ---
     setIsLoading(true);
-
-    // 1. Bungkus file menggunakan FormData
-    const formData = new FormData();
-    formData.append("file", file); // "file" adalah key yang bakal dibaca sama Golang lu
-
     try {
-      // 2. Tembak ke API Endpoint lu
-      const response = await fetch("/api/transactions/import", {
+      const res = await fetch("/api/transactions/bulk", {
         method: "POST",
-        // 🔥 PENTING: JANGAN tulis 'Content-Type': 'multipart/form-data' di headers!
-        // Browser akan otomatis nge-set itu beserta "boundary"-nya secara otomatis kalau pakai FormData.
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleanPayload),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(data.message || "Data berhasil di-import!");
-        closeAllModals();
-        triggerRefresh(); // Refresh tabel lu
-      } else {
-        toast.error(data.message || "Gagal mengimport data.");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Gagal menyimpan ke server.");
       }
-    } catch (error) {
-      console.error("Import error:", error);
-      toast.error("Terjadi kesalahan jaringan saat mengupload file.");
+
+      toast.success(`${cleanPayload.length} transaksi berhasil diimport!`);
+      // Reset state & tutup modal
+      setCsvRawData([]);
+      closeAllModals();
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrors([error.message]);
+      } else {
+        setErrors(["Terjadi kesalahan saat memproses data."]);
+      }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Buka kunci UI
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-card text-card-foreground rounded-xl shadow-xl flex flex-col border animate-in fade-in-50 zoom-in-95 duration-200">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-bold tracking-tight">Import Transaksi (CSV)</h2>
-          <Button variant="ghost" size="icon" onClick={closeAllModals} className="h-8 w-8 rounded-full">
-            <X className="h-4 w-4" />
-          </Button>
+    // <Dialog onOpenChange={(open) => !isLoading && onClose()}>
+    <Dialog open={true} onOpenChange={(open) => !isLoading}>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Import Transaksi (CSV/XLSX)</DialogTitle>
+        </DialogHeader>
+
+        {/* ATURAN 2: Injeksi UUID Dompet */}
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold">Pilih Dompet Tujuan</label>
+            <Select disabled={isLoading} value={selectedWalletId === "all" ? "" : selectedWalletId} onValueChange={setSelectedWalletId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih dompet..." />
+              </SelectTrigger>
+              <SelectContent>
+                {user?.wallets?.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold">Upload File </label>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              disabled={isLoading}
+              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer disabled:opacity-50"
+            />
+          </div>
+
+          {/* Area Mapping */}
+          {csvHeaders.length > 0 && (
+            <div className="space-y-4 pt-4 border-t">
+              <label className="text-sm font-semibold">3. Petakan Kolom CSV</label>
+
+              {TARGET_FIELDS.map((field) => (
+                <div key={field.id} className="grid grid-cols-2 items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                  </span>
+                  <Select disabled={isLoading} value={mapping[field.id] || ""} onValueChange={(val) => setMapping((prev) => ({ ...prev, [field.id]: val }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {csvHeaders.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+
+              {/* ATURAN 3: Fallback Kategori Jika CSV tidak punya kolom Type */}
+              {!mapping["category_type"] && (
+                <div className="grid grid-cols-2 items-center gap-4 bg-muted/50 p-3 rounded-md border border-yellow-200">
+                  <span className="text-sm font-medium text-yellow-700">Tipe Default (Karena kolom tipe belum dipetakan)</span>
+                  <Select disabled={isLoading} value={fallbackType} onValueChange={(val: any) => setFallbackType(val)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EXPENSE">Pengeluaran (Expense)</SelectItem>
+                      <SelectItem value="INCOME">Pemasukan (Income)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tampilan Error Validasi Lokal */}
+          {errors.length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-center gap-2 text-red-600 mb-1">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-semibold text-sm">Validasi Gagal:</span>
+              </div>
+              <ul className="list-disc pl-5 text-xs text-red-600 max-h-32 overflow-y-auto space-y-1">
+                {errors.map((err, idx) => (
+                  <li key={idx}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 gap-3 bg-muted/10">
-            <UploadCloud className="h-10 w-10 text-muted-foreground" />
-            <div className="text-center">
-              <p className="text-sm font-medium">Upload file CSV Anda di sini</p>
-              <p className="text-xs text-muted-foreground mt-1">Maksimal ukuran file: 5MB</p>
-            </div>
-
-            {/* Input File yang disembunyikan tampilannya, tapi fungsional */}
-            <Label htmlFor="csv-upload" className="mt-2 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium">
-              Pilih File
-            </Label>
-            <Input
-              id="csv-upload"
-              type="file"
-              accept=".csv" // Membatasi cuma bisa pilih file CSV
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {file && <p className="text-sm font-semibold text-emerald-600 mt-2">File terpilih: {file.name}</p>}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" type="button" onClick={closeAllModals}>
-              Batal
-            </Button>
-            <Button type="submit" disabled={!file || isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengupload...
-                </>
-              ) : (
-                "Mulai Import"
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => closeAllModals()} disabled={isLoading}>
+            Batal
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading || csvRawData.length === 0}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sedang Memproses...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" /> Import {csvRawData.length > 0 ? csvRawData.length : ""} Data
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
-};
+}

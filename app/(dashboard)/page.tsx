@@ -42,6 +42,8 @@ export default function Page() {
 
   return (
     <div className="flex flex-1 flex-col">
+      <PopupInput />
+
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">Welcome, {user?.username || "Loading..."}</h1>
         <span onClick={() => openModal("wallet")} className="cursor-pointer">
@@ -61,8 +63,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-
-      <PopupInput />
     </div>
   );
 }

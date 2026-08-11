@@ -1,3 +1,4 @@
+import { PopupInput } from "@/components/features/popup-input";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
