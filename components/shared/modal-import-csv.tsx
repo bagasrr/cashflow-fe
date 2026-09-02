@@ -158,11 +158,12 @@ export function ModalImportData() {
 
   return (
     // <Dialog onOpenChange={(open) => !isLoading && onClose()}>
-    <Dialog open={true} onOpenChange={(open) => !isLoading}>
+    <Dialog open={true} onOpenChange={(open) => !isLoading && closeAllModals()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        {/* <DialogHeader>
           <DialogTitle>Import Transaksi (CSV/XLSX)</DialogTitle>
-        </DialogHeader>
+        </DialogHeader> */}
+        <div> kontol</div>
 
         {/* ATURAN 2: Injeksi UUID Dompet */}
         <div className="space-y-4 py-4">
