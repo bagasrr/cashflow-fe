@@ -3,6 +3,7 @@
 import { ChartAreaInteractive } from "@/components/shared/chart-area-interactive";
 import { DataTable } from "@/components/shared/data-table"; // Pastikan path ini benar
 import { SectionCards } from "@/components/shared/section-cards";
+import { WalletBalanceBox } from "@/components/shared/wallet-balance-box";
 import { WalletToggle } from "@/components/shared/wallet-toggle";
 import { PopupInput } from "@/components/features/popup-input";
 import { useUiStore } from "@/store/ui-store";
@@ -53,6 +54,7 @@ export default function Page() {
 
       <div className="@container/main flex flex-1 flex-col gap-2 ">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <WalletBalanceBox />
           <SectionCards />
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive />

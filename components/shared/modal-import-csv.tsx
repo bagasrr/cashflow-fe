@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Papa from "papaparse";
 import { Upload, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,10 @@ import { useUiStore } from "@/store/ui-store";
 
 // Target kontrak DTO Golang
 const TARGET_FIELDS = [
+  { id: "date", label: "Tanggal (Date)", required: true },
   { id: "title", label: "Judul Transaksi", required: true },
   { id: "amount", label: "Nominal (Amount)", required: true },
-  { id: "date", label: "Tanggal (Date)", required: true },
+  { id: "description", label: "Deskripsi", required: false },
   { id: "category_name", label: "Nama Kategori", required: true },
   { id: "category_type", label: "Tipe (Income/Expense/Investment)", required: false }, // Jika tidak ada, pakai fallback
 ];
@@ -22,6 +23,7 @@ const TARGET_FIELDS = [
 export function ModalImportData() {
   const { user, selectedWalletId, setSelectedWalletId } = useAuthStore();
   const closeAllModals = useUiStore((state) => state.closeAllModals);
+  const triggerRefresh = useUiStore((state) => state.triggerRefresh);
 
   // State 1: Data Mentah di RAM (Aturan 1)
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -30,6 +32,19 @@ export function ModalImportData() {
   // State 2: UI Mapping & Fallback (Aturan 2 & 3)
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [fallbackType, setFallbackType] = useState<"INCOME" | "EXPENSE" | "INVESTMENT">("EXPENSE");
+
+  // NEW STATE: Value mapping for Category Type
+  const [typeValueMapping, setTypeValueMapping] = useState<Record<string, string>>({});
+
+  const uniqueCategoryTypes = useMemo(() => {
+    if (!mapping["category_type"] || !csvRawData.length) return [];
+    const types = new Set<string>();
+    csvRawData.forEach((row) => {
+      const val = row[mapping["category_type"]];
+      if (val) types.add(String(val).trim());
+    });
+    return Array.from(types);
+  }, [mapping, csvRawData]);
 
   // State 3: Validasi & Eksekusi (Aturan 4 & 5)
   const [errors, setErrors] = useState<string[]>([]);
@@ -83,15 +98,46 @@ export function ModalImportData() {
       const rawAmount = row[mapping["amount"]];
       const rawDate = row[mapping["date"]];
       const rawCatName = row[mapping["category_name"]];
-      const rawCatType = mapping["category_type"] ? row[mapping["category_type"]] : fallbackType;
+      const rawDescription = row[mapping["description"]] || "";
+
+      let rawCatType = mapping["category_type"] ? row[mapping["category_type"]] : fallbackType;
+      if (mapping["category_type"] && rawCatType) {
+        const trimmedType = String(rawCatType).trim();
+        if (typeValueMapping[trimmedType]) {
+          rawCatType = typeValueMapping[trimmedType];
+        }
+      }
 
       // Cek Baris Kosong (Pengamanan Ganda)
       if (!rawTitle && !rawAmount && !rawDate) continue;
 
-      const cleanAmountStr = String(rawAmount)
-        .replace(/\./g, "") // 1. Hapus semua titik (pemisah ribuan Indonesia)
-        .replace(/,/g, ".") // 2. Ubah koma menjadi titik (jadikan desimal standar JS)
-        .replace(/[^0-9.-]+/g, ""); // 3. Hapus sisa karakter aneh (Rp, spasi, huruf)
+      let cleanAmountStr = String(rawAmount).replace(/[^0-9.,-]/g, "");
+      const dotCount = (cleanAmountStr.match(/\./g) || []).length;
+      const commaCount = (cleanAmountStr.match(/,/g) || []).length;
+
+      if (dotCount > 0 && commaCount > 0) {
+        if (cleanAmountStr.lastIndexOf(",") > cleanAmountStr.lastIndexOf(".")) {
+          cleanAmountStr = cleanAmountStr.replace(/\./g, "").replace(/,/g, ".");
+        } else {
+          cleanAmountStr = cleanAmountStr.replace(/,/g, "");
+        }
+      } else if (dotCount > 1) {
+        cleanAmountStr = cleanAmountStr.replace(/\./g, "");
+      } else if (commaCount > 1) {
+        cleanAmountStr = cleanAmountStr.replace(/,/g, "");
+      } else if (dotCount === 1) {
+        const parts = cleanAmountStr.split(".");
+        if (parts[1] && parts[1].length === 3) {
+          cleanAmountStr = cleanAmountStr.replace(/\./g, "");
+        }
+      } else if (commaCount === 1) {
+        const parts = cleanAmountStr.split(",");
+        if (parts[1] && parts[1].length === 3) {
+          cleanAmountStr = cleanAmountStr.replace(/,/g, "");
+        } else {
+          cleanAmountStr = cleanAmountStr.replace(/,/g, ".");
+        }
+      }
 
       const finalAmount = Number(cleanAmountStr);
 
@@ -118,6 +164,7 @@ export function ModalImportData() {
         date: finalDate.toISOString(),
         category_name: String(rawCatName).trim(),
         category_type: finalType,
+        description: String(rawDescription).trim(),
       });
     }
 
@@ -145,6 +192,7 @@ export function ModalImportData() {
       // Reset state & tutup modal
       setCsvRawData([]);
       closeAllModals();
+      triggerRefresh();
     } catch (error: unknown) {
       if (error instanceof Error) {
         setErrors([error.message]);
@@ -232,6 +280,31 @@ export function ModalImportData() {
                       <SelectItem value="INCOME">Pemasukan (Income)</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Value Mapping untuk Tipe Kategori */}
+              {mapping["category_type"] && uniqueCategoryTypes.length > 0 && (
+                <div className="mt-6 pt-4 border-t space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold">4. Petakan Nilai Tipe Kategori</label>
+                    <p className="text-xs text-muted-foreground">Silakan petakan nilai yang ada di file CSV ke format yang sistem kenali.</p>
+                  </div>
+                  {uniqueCategoryTypes.map((typeValue) => (
+                    <div key={typeValue} className="grid grid-cols-2 items-center gap-4">
+                      <span className="text-sm text-muted-foreground font-medium">{typeValue}</span>
+                      <Select disabled={isLoading} value={typeValueMapping[typeValue] || ""} onValueChange={(val) => setTypeValueMapping((prev) => ({ ...prev, [typeValue]: val }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih tipe..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INCOME">Pemasukan (Income)</SelectItem>
+                          <SelectItem value="EXPENSE">Pengeluaran (Expense)</SelectItem>
+                          <SelectItem value="INVESTMENT">Investasi (Investment)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

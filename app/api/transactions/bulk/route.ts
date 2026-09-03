@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-
+    console.log("Received bulk transactions:", body);
     // Tembak Golang (Server to Server, bebas CORS!)
     const res = await fetch(`${golangApiUrl}/transactions/bulk`, {
       method: "POST",
